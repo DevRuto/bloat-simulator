@@ -3,9 +3,11 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import BloatRoom from './components/BloatRoom.vue'
 import { BloatSimulation } from './composables/useBloatSimulation.js'
 
-const turnDirection = ref('clockwise')
-const positionOffset = ref(0)
-const msPerTick = ref(600)
+// Get query parameters
+const urlParams = new URLSearchParams(window.location.search)
+const turnDirection = ref(urlParams.get('turnDirection') || 'clockwise')
+const positionOffset = ref(parseInt(urlParams.get('positionOffset')) || 0)
+const msPerTick = ref(parseInt(urlParams.get('msPerTick')) || 600)
 let simulation = new BloatSimulation(turnDirection.value, positionOffset.value)
 const tiles = ref(simulation.getTiles())
 const isRunning = ref(false)
@@ -21,12 +23,30 @@ const debugInfo = ref({
   turnCooldown: 0,
   canFall: false,
   direction: 'right',
-  turnDirection: 'clockwise',
-  positionOffset: 0,
-  msPerTick: 600
+  turnDirection: turnDirection.value,
+  positionOffset: positionOffset.value,
+  msPerTick: msPerTick.value
 })
 
 const bloatRoomRef = ref(null)
+
+// Update URL with current settings
+const updateURL = () => {
+  const params = new URLSearchParams()
+
+  if (turnDirection.value !== 'clockwise') {
+    params.set('turnDirection', turnDirection.value)
+  }
+  if (positionOffset.value !== 0) {
+    params.set('positionOffset', positionOffset.value.toString())
+  }
+  if (msPerTick.value !== 600) {
+    params.set('msPerTick', msPerTick.value.toString())
+  }
+
+  const newURL = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname
+  window.history.replaceState({}, '', newURL)
+}
 
 // Recreate simulation with new settings
 const recreateSimulation = () => {
@@ -34,12 +54,25 @@ const recreateSimulation = () => {
   pauseSimulation()
   simulation = new BloatSimulation(turnDirection.value, positionOffset.value)
   updateTiles()
+  updateURL()
   if (wasRunning) {
     startSimulation()
   }
 }
 
-// Animation controls
+// Update URL when speed changes
+const updateSpeedURL = () => {
+  const params = new URLSearchParams(window.location.search)
+
+  if (msPerTick.value !== 600) {
+    params.set('msPerTick', msPerTick.value.toString())
+  } else {
+    params.delete('msPerTick')
+  }
+
+  const newURL = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname
+  window.history.replaceState({}, '', newURL)
+}
 const startSimulation = () => {
   if (!isRunning.value) {
     isRunning.value = true
@@ -183,6 +216,7 @@ onUnmounted(() => {
             <input
               type="number"
               v-model.number="msPerTick"
+              @change="updateSpeedURL"
               placeholder="600"
               min="50"
               max="5000"
@@ -196,9 +230,6 @@ onUnmounted(() => {
         </div>
         <div class="debug-item">
           <strong>Can Fall:</strong> {{ debugInfo.canFall ? 'Yes (39-51t)' : 'No' }}
-        </div>
-        <div class="debug-item">
-          <strong>Valid Positions:</strong> {{ debugInfo.validPositions }}
         </div>
       </div>
     </div>

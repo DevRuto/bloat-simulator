@@ -28,6 +28,8 @@ const debugInfo = ref({
   msPerTick: msPerTick.value
 })
 
+const infoLog = ref([])
+
 const bloatRoomRef = ref(null)
 
 // Update URL with current settings
@@ -96,6 +98,7 @@ const startSimulation = () => {
         updateTiles() // Update after each tick for real-time feedback
 
         if (result.shouldReset) {
+          logBloatFall(simulation.getSimulationState().currentTick)
           pauseSimulation()
         } else if (isRunning.value) {
           // Continue with next tick using requestAnimationFrame for UI updates
@@ -108,6 +111,7 @@ const startSimulation = () => {
       tickInterval.value = setInterval(() => {
         const result = simulation.processTick()
         if (result.shouldReset) {
+          logBloatFall(simulation.getSimulationState().currentTick)
           // resetSimulation()
           pauseSimulation()
         }
@@ -135,6 +139,15 @@ const restartSimulation = () => {
   simulation.resetState()
   updateTiles()
   startWithUpdates()
+}
+
+const logBloatFall = (tick) => {
+  const timestamp = new Date().toLocaleTimeString()
+  infoLog.value.unshift(`[${timestamp}] Bloat fell at tick ${tick}`)
+}
+
+const clearLog = () => {
+  infoLog.value = []
 }
 
 // Update tiles when simulation changes
@@ -243,34 +256,47 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <div class="bg-gray-100 border-2 border-gray-800 rounded-lg p-4 min-w-48 font-mono">
-        <h3 class="mt-0 mb-2.5 text-center text-gray-800">Debug Info</h3>
-        <div class="mb-1.5 text-sm leading-relaxed">
-          <strong class="text-black">Bloat Position:</strong> ({{ debugInfo.bloatPosition.x }}, {{ debugInfo.bloatPosition.y }})
+      <div class="flex flex-col gap-4">
+        <div class="bg-gray-100 border-2 border-gray-800 rounded-lg p-4 min-w-48 font-mono">
+          <h3 class="mt-0 mb-2.5 text-center text-gray-800">Debug Info</h3>
+          <div class="mb-1.5 text-sm leading-relaxed">
+            <strong class="text-black">Bloat Position:</strong> ({{ debugInfo.bloatPosition.x }}, {{ debugInfo.bloatPosition.y }})
+          </div>
+          <div class="mb-1.5 text-sm leading-relaxed">
+            <strong class="text-black">Status:</strong> {{ debugInfo.isRunning ? 'Running' : 'Paused' }}
+          </div>
+          <div class="mb-1.5 text-sm leading-relaxed">
+            <strong class="text-black">Current Tick:</strong> {{ debugInfo.currentTick }}
+          </div>
+          <div class="mb-1.5 text-sm leading-relaxed">
+            <strong class="text-black">Direction:</strong> {{ debugInfo.direction.toUpperCase() }}
+          </div>
+          <div class="mb-1.5 text-sm leading-relaxed">
+            <strong class="text-black">Turn Direction:</strong> {{ debugInfo.turnDirection }}
+          </div>
+          <div class="mb-1.5 text-sm leading-relaxed">
+            <strong class="text-black">Position Offset:</strong> {{ debugInfo.positionOffset }}
+          </div>
+          <div class="mb-1.5 text-sm leading-relaxed">
+            <strong class="text-black">Speed:</strong> Walking (1 tile/tick) - {{ msPerTick === 0 ? 'Instant' : msPerTick + 'ms per tick' }}
+          </div>
+          <div class="mb-1.5 text-sm leading-relaxed">
+            <strong class="text-black">Turn Cooldown:</strong> {{ debugInfo.turnCooldown }}t
+          </div>
+          <div class="mb-1.5 text-sm leading-relaxed">
+            <strong class="text-black">Can Fall:</strong> {{ debugInfo.canFall ? 'Yes (39-51t)' : 'No' }}
+          </div>
         </div>
-        <div class="mb-1.5 text-sm leading-relaxed">
-          <strong class="text-black">Status:</strong> {{ debugInfo.isRunning ? 'Running' : 'Paused' }}
-        </div>
-        <div class="mb-1.5 text-sm leading-relaxed">
-          <strong class="text-black">Current Tick:</strong> {{ debugInfo.currentTick }}
-        </div>
-        <div class="mb-1.5 text-sm leading-relaxed">
-          <strong class="text-black">Direction:</strong> {{ debugInfo.direction.toUpperCase() }}
-        </div>
-        <div class="mb-1.5 text-sm leading-relaxed">
-          <strong class="text-black">Turn Direction:</strong> {{ debugInfo.turnDirection }}
-        </div>
-        <div class="mb-1.5 text-sm leading-relaxed">
-          <strong class="text-black">Position Offset:</strong> {{ debugInfo.positionOffset }}
-        </div>
-        <div class="mb-1.5 text-sm leading-relaxed">
-          <strong class="text-black">Speed:</strong> Walking (1 tile/tick) - {{ msPerTick === 0 ? 'Instant' : msPerTick + 'ms per tick' }}
-        </div>
-        <div class="mb-1.5 text-sm leading-relaxed">
-          <strong class="text-black">Turn Cooldown:</strong> {{ debugInfo.turnCooldown }}t
-        </div>
-        <div class="mb-1.5 text-sm leading-relaxed">
-          <strong class="text-black">Can Fall:</strong> {{ debugInfo.canFall ? 'Yes (39-51t)' : 'No' }}
+
+        <div class="bg-gray-100 border-2 border-gray-800 rounded-lg p-4 min-w-48 font-mono max-h-96 overflow-y-auto">
+          <div class="flex justify-between items-center mb-2.5">
+            <h3 class="mt-0 text-center text-gray-800">Info Log</h3>
+            <button @click="clearLog" class="px-2 py-1 text-xs border border-gray-300 rounded bg-white hover:bg-gray-50 transition-colors">Clear</button>
+          </div>
+          <div v-if="infoLog.length === 0" class="text-sm text-gray-500 italic">No events logged yet</div>
+          <div v-for="(log, index) in infoLog" :key="index" class="mb-1 text-sm leading-relaxed text-gray-700">
+            {{ log }}
+          </div>
         </div>
       </div>
     </div>

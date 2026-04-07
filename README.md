@@ -9,5 +9,9 @@ Link to GitHub Page: https://devruto.github.io/bloat-simulator/
 ## Heavy AI usage with SWE-1.5 model
 Impressive speed with this model. Quite a few logic errors were found and fixed, but the speed of development was impressive.
 
+## Implementation Notes
+- The simulation script is in `sim.js` and can be run with `node sim.js`
+- The turn direction doesn't really matter for the current use case so far
+
 ## TODO - Duo tob stuff
 - [ ] Ranger/Mager attack ticks

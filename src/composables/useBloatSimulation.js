@@ -221,11 +221,12 @@ export class BloatSimulation {
         newY = nextY
         moved = true
       } else {
+        console.log('Hit boundary or pillar')
         // Hit boundary or pillar, turn clockwise and try to continue
         this.turnClockwise()
 
         // Try to move in new direction for remaining steps
-        for (let j = i + 1; j < stepSize; j++) {
+        for (let j = i; j < stepSize; j++) {
           let retryX = newX
           let retryY = newY
 

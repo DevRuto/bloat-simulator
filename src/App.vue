@@ -45,7 +45,8 @@ const startSimulation = () => {
     tickInterval.value = setInterval(() => {
       const result = simulation.processTick()
       if (result.shouldReset) {
-        resetSimulation()
+        // resetSimulation()
+        pauseSimulation()
       }
     }, 600)
   }

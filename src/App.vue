@@ -131,13 +131,14 @@ onUnmounted(() => {
                 <option value="counterclockwise">Counterclockwise</option>
               </select>
             </label>
-            <label>
-              Position Offset:
+            <label class="flex flex-col gap-1 text-sm font-medium">
+              Position Offset (tiles from start):
               <input
                 type="number"
                 v-model.number="positionOffset"
                 @change="recreateSimulation"
                 placeholder="0"
+                class="p-2 border border-gray-300 rounded text-sm min-w-32"
               >
             </label>
           </div>

@@ -67,22 +67,16 @@ export class BloatSimulation {
 
   // Apply position offset along the perimeter
   applyPositionOffset() {
-    const validPositions = this.getValidBloatPositions()
-    const startIndex = validPositions.findIndex(
-      pos => pos.x === this.bloatPosition.x && pos.y === this.bloatPosition.y
-    )
-
-    if (startIndex !== -1 && validPositions.length > 0) {
-      // Calculate offset index (handle negative values)
-      let offsetIndex = (startIndex + this.positionOffset) % validPositions.length
-      if (offsetIndex < 0) {
-        offsetIndex += validPositions.length
-      }
-
-      this.bloatPosition = { ...validPositions[offsetIndex] }
-
-      // Update direction based on new position and turn direction
-      this.updateDirectionForPosition()
+    if (this.positionOffset < 0) {
+      this.turnDirection = this.turnDirection === 'clockwise' ? 'counterclockwise' : 'clockwise';
+      this.turnClockwise();
+    }
+    for (let i = 0; i < Math.abs(this.positionOffset); i++) {
+      this.moveBloatStep()
+    }
+    if (this.positionOffset < 0) {
+      this.turnDirection = this.turnDirection === 'clockwise' ? 'counterclockwise' : 'clockwise';
+      this.turnClockwise();
     }
   }
 

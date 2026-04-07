@@ -224,7 +224,6 @@ export class BloatSimulation {
         newY = nextY
         moved = true
       } else {
-        console.log('Hit boundary or pillar')
         // Hit boundary or pillar, turn clockwise and try to continue
         this.turnClockwise()
 

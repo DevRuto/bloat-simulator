@@ -314,12 +314,18 @@ export class BloatSimulation {
       this.turnCooldown--
     }
 
-    // Check if bloat can fall (after 39 ticks and before 51 ticks)
-    if (this.currentTick >= 39 && this.currentTick <= 51) {
+    // Check if bloat can fall (always falls on tick 47 unless turned in last 5 ticks)
+    if (this.currentTick >= 39) {
       this.canFall = true
 
-      // 1/4 chance to fall if can fall and hasn't turned in last 5 ticks
-      if (this.turnCooldown === 0 && Math.random() < 0.25) {
+      // Always fall on tick 47 if can fall and hasn't turned in last 5 ticks
+      if (this.turnCooldown === 0 && this.currentTick === 47) {
+        // Bloat falls - reset simulation
+        return { shouldReset: true }
+      }
+
+      // Fall on tick 51 if can fall and hasn't turned in last 5 ticks
+      if (this.turnCooldown < 27 && this.currentTick > 47) {
         // Bloat falls - reset simulation
         return { shouldReset: true }
       }

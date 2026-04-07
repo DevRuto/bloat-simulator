@@ -70,13 +70,16 @@ export class BloatSimulation {
     if (this.positionOffset < 0) {
       this.turnDirection = this.turnDirection === 'clockwise' ? 'counterclockwise' : 'clockwise';
       this.turnClockwise();
+      this.turnClockwise();
+      this.turnClockwise();
     }
     for (let i = 0; i < Math.abs(this.positionOffset); i++) {
       this.moveBloatStep()
     }
     if (this.positionOffset < 0) {
-      this.turnDirection = this.turnDirection === 'clockwise' ? 'counterclockwise' : 'clockwise';
       this.turnClockwise();
+      this.turnClockwise();
+      this.turnDirection = this.turnDirection === 'clockwise' ? 'counterclockwise' : 'clockwise';
     }
   }
 

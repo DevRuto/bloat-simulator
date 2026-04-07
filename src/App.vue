@@ -48,6 +48,12 @@ const updateURL = () => {
   window.history.replaceState({}, '', newURL)
 }
 
+// Toggle turn direction between clockwise and counterclockwise
+const toggleTurnDirection = () => {
+  turnDirection.value = turnDirection.value === 'clockwise' ? 'counterclockwise' : 'clockwise'
+  recreateSimulation()
+}
+
 // Recreate simulation with new settings
 const recreateSimulation = () => {
   const wasRunning = isRunning.value
@@ -153,19 +159,30 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="app">
-    <div class="main-content">
-      <div class="grid-container">
+  <div class="flex flex-row items-start p-8 gap-8">
+    <div class="flex flex-row gap-8 items-start">
+      <div class="flex flex-col gap-5 items-center">
         <BloatRoom ref="bloatRoomRef" :direction="debugInfo.direction" />
 
-        <div class="controls">
-          <div class="control-group">
-            <label>
-              Turn Direction:
-              <select v-model="turnDirection" @change="recreateSimulation" :disabled="isRunning" class="disabled:opacity-50 disabled:cursor-not-allowed">
-                <option value="clockwise">Clockwise</option>
-                <option value="counterclockwise">Counterclockwise</option>
-              </select>
+        <div class="flex flex-col gap-4 p-4 bg-gray-100 rounded-lg border-2 border-gray-300 w-full max-w-md">
+          <div class="flex gap-4 items-end justify-center">
+            <label class="flex flex-col gap-2">
+              <span class="text-sm font-medium">Turn Direction:</span>
+              <div class="flex items-center gap-2">
+                <span class="text-sm" :class="{ 'text-gray-400': isRunning }">Counter</span>
+                <button
+                  @click="toggleTurnDirection"
+                  :disabled="isRunning"
+                  class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  :class="turnDirection === 'clockwise' ? 'bg-blue-600' : 'bg-gray-300'"
+                >
+                  <span
+                    class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                    :class="turnDirection === 'clockwise' ? 'translate-x-6' : 'translate-x-1'"
+                  />
+                </button>
+                <span class="text-sm" :class="{ 'text-gray-400': isRunning }">Clockwise</span>
+              </div>
             </label>
             <label class="flex flex-col gap-1 text-sm font-medium">
               Position Offset (tiles from start):
@@ -179,40 +196,40 @@ onUnmounted(() => {
               >
             </label>
           </div>
-          <div class="button-group">
-            <button @click="startWithUpdates" :disabled="isRunning">Start</button>
-            <button @click="pauseWithUpdates" :disabled="!isRunning">Pause</button>
-            <button @click="resetSimulation">Reset</button>
+          <div class="flex gap-2 justify-center">
+            <button @click="startWithUpdates" :disabled="isRunning" class="px-4 py-2 border border-gray-300 rounded bg-white cursor-pointer text-sm transition-colors hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">Start</button>
+            <button @click="pauseWithUpdates" :disabled="!isRunning" class="px-4 py-2 border border-gray-300 rounded bg-white cursor-pointer text-sm transition-colors hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">Pause</button>
+            <button @click="resetSimulation" class="px-4 py-2 border border-gray-300 rounded bg-white cursor-pointer text-sm transition-colors hover:bg-gray-50">Reset</button>
           </div>
         </div>
       </div>
 
-      <div class="debug-box">
-        <h3>Debug Info</h3>
-        <div class="debug-item">
-          <strong>Bloat Position:</strong> ({{ debugInfo.bloatPosition.x }}, {{ debugInfo.bloatPosition.y }})
+      <div class="bg-gray-100 border-2 border-gray-800 rounded-lg p-4 min-w-48 font-mono">
+        <h3 class="mt-0 mb-2.5 text-center text-gray-800">Debug Info</h3>
+        <div class="mb-1.5 text-sm leading-relaxed">
+          <strong class="text-black">Bloat Position:</strong> ({{ debugInfo.bloatPosition.x }}, {{ debugInfo.bloatPosition.y }})
         </div>
-        <div class="debug-item">
-          <strong>Status:</strong> {{ debugInfo.isRunning ? 'Running' : 'Paused' }}
+        <div class="mb-1.5 text-sm leading-relaxed">
+          <strong class="text-black">Status:</strong> {{ debugInfo.isRunning ? 'Running' : 'Paused' }}
         </div>
-        <div class="debug-item">
-          <strong>Current Tick:</strong> {{ debugInfo.currentTick }}
+        <div class="mb-1.5 text-sm leading-relaxed">
+          <strong class="text-black">Current Tick:</strong> {{ debugInfo.currentTick }}
         </div>
-        <div class="debug-item">
-          <strong>Direction:</strong> {{ debugInfo.direction.toUpperCase() }}
+        <div class="mb-1.5 text-sm leading-relaxed">
+          <strong class="text-black">Direction:</strong> {{ debugInfo.direction.toUpperCase() }}
         </div>
-        <div class="debug-item">
-          <strong>Turn Direction:</strong> {{ debugInfo.turnDirection }}
+        <div class="mb-1.5 text-sm leading-relaxed">
+          <strong class="text-black">Turn Direction:</strong> {{ debugInfo.turnDirection }}
         </div>
-        <div class="debug-item">
-          <strong>Position Offset:</strong> {{ debugInfo.positionOffset }}
+        <div class="mb-1.5 text-sm leading-relaxed">
+          <strong class="text-black">Position Offset:</strong> {{ debugInfo.positionOffset }}
         </div>
-        <div class="debug-item">
-          <strong>Speed:</strong> Walking (1 tile/tick)
+        <div class="mb-1.5 text-sm leading-relaxed">
+          <strong class="text-black">Speed:</strong> Walking (1 tile/tick)
         </div>
-        <div class="debug-item">
+        <div class="mb-1.5 text-sm leading-relaxed">
           <label class="flex flex-col gap-1 text-xs">
-            <strong>Speed (ms per tick):</strong>
+            <strong class="text-black">Speed (ms per tick):</strong>
             <input
               type="number"
               v-model.number="msPerTick"
@@ -225,11 +242,11 @@ onUnmounted(() => {
             >
           </label>
         </div>
-        <div class="debug-item">
-          <strong>Turn Cooldown:</strong> {{ debugInfo.turnCooldown }}t
+        <div class="mb-1.5 text-sm leading-relaxed">
+          <strong class="text-black">Turn Cooldown:</strong> {{ debugInfo.turnCooldown }}t
         </div>
-        <div class="debug-item">
-          <strong>Can Fall:</strong> {{ debugInfo.canFall ? 'Yes (39-51t)' : 'No' }}
+        <div class="mb-1.5 text-sm leading-relaxed">
+          <strong class="text-black">Can Fall:</strong> {{ debugInfo.canFall ? 'Yes (39-51t)' : 'No' }}
         </div>
       </div>
     </div>
@@ -237,112 +254,5 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.app {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  padding: 20px;
-  gap: 30px;
-}
-
-.main-content {
-  display: flex;
-  flex-direction: row;
-  gap: 30px;
-  align-items: flex-start;
-}
-
-.grid-container {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  align-items: center;
-}
-
-.controls {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding: 1rem;
-  background: #f5f5f5;
-  border-radius: 8px;
-  border: 2px solid #ddd;
-  width: 100%;
-  max-width: 400px;
-}
-
-.control-group {
-  display: flex;
-  gap: 1rem;
-  align-items: flex-end;
-  justify-content: center;
-}
-
-.control-group label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.control-group select,
-.control-group input {
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  min-width: 120px;
-}
-
-.button-group {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-}
-
-.button-group button {
-  padding: 0.5rem 1rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: white;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: background-color 0.2s;
-}
-
-.button-group button:hover:not(:disabled) {
-  background-color: #f0f0f0;
-}
-
-.button-group button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.debug-box {
-  background-color: #f5f5f5;
-  border: 2px solid #333;
-  border-radius: 8px;
-  padding: 15px;
-  min-width: 200px;
-  font-family: 'Courier New', monospace;
-}
-
-.debug-box h3 {
-  margin-top: 0;
-  margin-bottom: 10px;
-  text-align: center;
-  color: #333;
-}
-
-.debug-item {
-  margin-bottom: 5px;
-  font-size: 0.85rem;
-  line-height: 1.3;
-}
-
-.debug-item strong {
-  color: #000;
-}
+/* Custom styles that can't be replaced with Tailwind */
 </style>

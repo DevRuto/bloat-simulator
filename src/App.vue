@@ -120,7 +120,7 @@ onUnmounted(() => {
   <div class="app">
     <div class="main-content">
       <div class="grid-container">
-        <BloatRoom ref="bloatRoomRef" />
+        <BloatRoom ref="bloatRoomRef" :direction="debugInfo.direction" />
 
         <div class="controls">
           <div class="control-group">

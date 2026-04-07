@@ -11,16 +11,54 @@
           'floor': tile.isFloor
         }"
       >
-        <div v-if="tile.isBloat" class="bloat-entity">BLOAT</div>
+        <div v-if="tile.isBloat && isCenterTile(tile)" class="bloat-entity">
+          <div class="direction-indicator">
+            {{ getDirectionSymbol() }}
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, defineProps } from 'vue'
+
+const props = defineProps({
+  direction: {
+    type: String,
+    default: 'right'
+  }
+})
 
 const tilesData = ref([])
+
+// Check if tile is the center of the 5x5 bloat area
+const isCenterTile = (tile) => {
+  // Find all bloat tiles
+  const bloatTiles = tilesData.value.filter(t => t.isBloat)
+  if (bloatTiles.length === 0) return false
+
+  // Get bloat position (top-left corner)
+  const bloatPos = { x: bloatTiles[0].x, y: bloatTiles[0].y }
+
+  // Center of 5x5 area is at (x+2, y+2)
+  const centerX = bloatPos.x + 2
+  const centerY = bloatPos.y + 2
+
+  return tile.x === centerX && tile.y === centerY
+}
+
+// Get arrow character for direction
+const getDirectionSymbol = () => {
+  switch (props.direction) {
+    case 'right': return '>'
+    case 'down': return 'v'
+    case 'left': return '<'
+    case 'up': return '^'
+    default: return '>'
+  }
+}
 
 // Initialize with empty grid
 const initializeEmptyGrid = () => {
@@ -125,5 +163,32 @@ onMounted(() => {
   font-weight: bold;
   color: white;
   text-shadow: 1px 1px 2px black;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.direction-indicator {
+  font-size: 20px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 2px 2px 4px black;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.direction-indicator.rotate-down {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.direction-indicator.rotate-left {
+  transform: translate(-50%, -50%) rotate(180deg);
+}
+
+.direction-indicator.rotate-up {
+  transform: translate(-50%, -50%) rotate(-90deg);
 }
 </style>

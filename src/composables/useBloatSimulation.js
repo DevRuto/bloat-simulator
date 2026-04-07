@@ -4,7 +4,7 @@ export const BLOAT_SIZE = 5
 export const PILLAR_SIZE = 6
 
 export class BloatSimulation {
-  constructor() {
+  constructor(turnDirection = 'clockwise', positionOffset = 0) {
     this.tiles = []
     this.bloatPosition = { x: 0, y: 0 }
     this.currentTick = 0
@@ -13,6 +13,8 @@ export class BloatSimulation {
     this.turnCooldown = 0
     this.canFall = false
     this.direction = 'right'
+    this.turnDirection = turnDirection // 'clockwise' or 'counterclockwise'
+    this.positionOffset = positionOffset
     this.initializeGrid()
   }
 
@@ -45,8 +47,69 @@ export class BloatSimulation {
     }
 
     this.tiles = newTiles
-    this.bloatPosition = { x: 0, y: 0 }
+
+    // Set initial position based on turn direction and offset
+    if (this.turnDirection === 'clockwise') {
+      // Start at top-left corner
+      this.bloatPosition = { x: 0, y: 0 }
+      this.direction = 'right'
+    } else {
+      // Start at top-right corner
+      this.bloatPosition = { x: GRID_SIZE - BLOAT_SIZE, y: 0 }
+      this.direction = 'left'
+    }
+
+    // Apply position offset
+    this.applyPositionOffset()
+
     this.updateBloatPosition()
+  }
+
+  // Apply position offset along the perimeter
+  applyPositionOffset() {
+    const validPositions = this.getValidBloatPositions()
+    const startIndex = validPositions.findIndex(
+      pos => pos.x === this.bloatPosition.x && pos.y === this.bloatPosition.y
+    )
+
+    if (startIndex !== -1 && validPositions.length > 0) {
+      // Calculate offset index (handle negative values)
+      let offsetIndex = (startIndex + this.positionOffset) % validPositions.length
+      if (offsetIndex < 0) {
+        offsetIndex += validPositions.length
+      }
+
+      this.bloatPosition = { ...validPositions[offsetIndex] }
+
+      // Update direction based on new position and turn direction
+      this.updateDirectionForPosition()
+    }
+  }
+
+  // Update direction based on current position and turn direction
+  updateDirectionForPosition() {
+    const validPositions = this.getValidBloatPositions()
+    const currentIndex = validPositions.findIndex(
+      pos => pos.x === this.bloatPosition.x && pos.y === this.bloatPosition.y
+    )
+
+    if (currentIndex !== -1 && validPositions.length > 1) {
+      // Get next position based on turn direction
+      let nextIndex
+      if (this.turnDirection === 'clockwise') {
+        nextIndex = (currentIndex + 1) % validPositions.length
+      } else {
+        nextIndex = currentIndex === 0 ? validPositions.length - 1 : currentIndex - 1
+      }
+
+      const nextPos = validPositions[nextIndex]
+
+      // Determine direction to next position
+      if (nextPos.x > this.bloatPosition.x) this.direction = 'right'
+      else if (nextPos.x < this.bloatPosition.x) this.direction = 'left'
+      else if (nextPos.y > this.bloatPosition.y) this.direction = 'down'
+      else if (nextPos.y < this.bloatPosition.y) this.direction = 'up'
+    }
   }
 
   // Update bloat position on the grid
@@ -207,21 +270,40 @@ export class BloatSimulation {
     }
   }
 
-  // Turn direction clockwise: right -> down -> left -> up -> right
+  // Turn direction based on turnDirection setting
   turnClockwise() {
-    switch (this.direction) {
-      case 'right':
-        this.direction = 'down'
-        break
-      case 'down':
-        this.direction = 'left'
-        break
-      case 'left':
-        this.direction = 'up'
-        break
-      case 'up':
-        this.direction = 'right'
-        break
+    if (this.turnDirection === 'clockwise') {
+      // Clockwise: right -> down -> left -> up -> right
+      switch (this.direction) {
+        case 'right':
+          this.direction = 'down'
+          break
+        case 'down':
+          this.direction = 'left'
+          break
+        case 'left':
+          this.direction = 'up'
+          break
+        case 'up':
+          this.direction = 'right'
+          break
+      }
+    } else {
+      // Counterclockwise: right -> up -> left -> down -> right
+      switch (this.direction) {
+        case 'right':
+          this.direction = 'up'
+          break
+        case 'up':
+          this.direction = 'left'
+          break
+        case 'left':
+          this.direction = 'down'
+          break
+        case 'down':
+          this.direction = 'right'
+          break
+      }
     }
   }
 
@@ -271,5 +353,15 @@ export class BloatSimulation {
       canFall: this.canFall,
       direction: this.direction
     }
+  }
+
+  // Reset simulation state
+  resetState() {
+    this.currentTick = 0
+    this.isWalking = true
+    this.isRunningState = false
+    this.turnCooldown = 0
+    this.canFall = false
+    this.initializeGrid()
   }
 }

@@ -3,7 +3,9 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import BloatRoom from './components/BloatRoom.vue'
 import { BloatSimulation } from './composables/useBloatSimulation.js'
 
-const simulation = new BloatSimulation()
+const turnDirection = ref('clockwise')
+const positionOffset = ref(0)
+let simulation = new BloatSimulation(turnDirection.value, positionOffset.value)
 const tiles = ref(simulation.getTiles())
 const isRunning = ref(false)
 const tickInterval = ref(null)
@@ -18,10 +20,23 @@ const debugInfo = ref({
   isRunningState: false,
   turnCooldown: 0,
   canFall: false,
-  direction: 'right'
+  direction: 'right',
+  turnDirection: 'clockwise',
+  positionOffset: 0
 })
 
 const bloatRoomRef = ref(null)
+
+// Recreate simulation with new settings
+const recreateSimulation = () => {
+  const wasRunning = isRunning.value
+  pauseSimulation()
+  simulation = new BloatSimulation(turnDirection.value, positionOffset.value)
+  updateTiles()
+  if (wasRunning) {
+    startSimulation()
+  }
+}
 
 // Animation controls
 const startSimulation = () => {
@@ -31,8 +46,7 @@ const startSimulation = () => {
     tickInterval.value = setInterval(() => {
       const result = simulation.processTick()
       if (result.shouldReset) {
-        // resetSimulation()
-        pauseSimulation()
+        resetSimulation()
       }
     }, 600)
   }
@@ -63,12 +77,15 @@ const updateTiles = () => {
   debugInfo.value = {
     bloatPosition: { ...simulation.bloatPosition },
     isRunning: isRunning.value,
+    validPositions: simulation.getValidBloatPositions().length,
     currentTick: simState.currentTick,
     isWalking: simState.isWalking,
     isRunningState: simState.isRunningState,
     turnCooldown: simState.turnCooldown,
     canFall: simState.canFall,
-    direction: simState.direction
+    direction: simState.direction,
+    turnDirection: turnDirection.value,
+    positionOffset: positionOffset.value
   }
 
   // Update BloatRoom component
@@ -103,36 +120,68 @@ onUnmounted(() => {
 <template>
   <div class="app">
     <div class="main-content">
-      <BloatRoom ref="bloatRoomRef" />
-      <div class="controls">
-        <button @click="startWithUpdates">Start</button>
-        <button @click="pauseWithUpdates">Pause</button>
-        <button @click="resetSimulation">Reset</button>
-      </div>
-    </div>
+      <div class="grid-container">
+        <BloatRoom ref="bloatRoomRef" />
 
-    <div class="debug-box">
-      <h3>Debug Info</h3>
-      <div class="debug-item">
-        <strong>Bloat Position:</strong> ({{ debugInfo.bloatPosition.x }}, {{ debugInfo.bloatPosition.y }})
+        <div class="controls">
+          <div class="control-group">
+            <label>
+              Turn Direction:
+              <select v-model="turnDirection" @change="recreateSimulation">
+                <option value="clockwise">Clockwise</option>
+                <option value="counterclockwise">Counterclockwise</option>
+              </select>
+            </label>
+            <label>
+              Position Offset:
+              <input
+                type="number"
+                v-model.number="positionOffset"
+                @change="recreateSimulation"
+                placeholder="0"
+              >
+            </label>
+          </div>
+          <div class="button-group">
+            <button @click="startWithUpdates" :disabled="isRunning">Start</button>
+            <button @click="pauseWithUpdates" :disabled="!isRunning">Pause</button>
+            <button @click="resetSimulation">Reset</button>
+          </div>
+        </div>
       </div>
-      <div class="debug-item">
-        <strong>Status:</strong> {{ debugInfo.isRunning ? 'Running' : 'Paused' }}
-      </div>
-      <div class="debug-item">
-        <strong>Current Tick:</strong> {{ debugInfo.currentTick }}
-      </div>
-      <div class="debug-item">
-        <strong>Direction:</strong> {{ debugInfo.direction.toUpperCase() }}
-      </div>
-      <div class="debug-item">
-        <strong>Speed:</strong> Walking (1 tile/tick)
-      </div>
-      <div class="debug-item">
-        <strong>Turn Cooldown:</strong> {{ debugInfo.turnCooldown }}t
-      </div>
-      <div class="debug-item">
-        <strong>Can Fall:</strong> {{ debugInfo.canFall ? 'Yes (39-51t)' : 'No' }}
+
+      <div class="debug-box">
+        <h3>Debug Info</h3>
+        <div class="debug-item">
+          <strong>Bloat Position:</strong> ({{ debugInfo.bloatPosition.x }}, {{ debugInfo.bloatPosition.y }})
+        </div>
+        <div class="debug-item">
+          <strong>Status:</strong> {{ debugInfo.isRunning ? 'Running' : 'Paused' }}
+        </div>
+        <div class="debug-item">
+          <strong>Current Tick:</strong> {{ debugInfo.currentTick }}
+        </div>
+        <div class="debug-item">
+          <strong>Direction:</strong> {{ debugInfo.direction.toUpperCase() }}
+        </div>
+        <div class="debug-item">
+          <strong>Turn Direction:</strong> {{ debugInfo.turnDirection }}
+        </div>
+        <div class="debug-item">
+          <strong>Position Offset:</strong> {{ debugInfo.positionOffset }}
+        </div>
+        <div class="debug-item">
+          <strong>Speed:</strong> Walking (1 tile/tick)
+        </div>
+        <div class="debug-item">
+          <strong>Turn Cooldown:</strong> {{ debugInfo.turnCooldown }}t
+        </div>
+        <div class="debug-item">
+          <strong>Can Fall:</strong> {{ debugInfo.canFall ? 'Yes (39-51t)' : 'No' }}
+        </div>
+        <div class="debug-item">
+          <strong>Valid Positions:</strong> {{ debugInfo.validPositions }}
+        </div>
       </div>
     </div>
   </div>
@@ -149,8 +198,77 @@ onUnmounted(() => {
 
 .main-content {
   display: flex;
+  flex-direction: row;
+  gap: 30px;
+  align-items: flex-start;
+}
+
+.grid-container {
+  display: flex;
   flex-direction: column;
+  gap: 20px;
   align-items: center;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f5f5f5;
+  border-radius: 8px;
+  border: 2px solid #ddd;
+  width: 100%;
+  max-width: 400px;
+}
+
+.control-group {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.control-group label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.control-group select,
+.control-group input {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  min-width: 120px;
+}
+
+.button-group {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.button-group button {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+
+.button-group button:hover:not(:disabled) {
+  background-color: #f0f0f0;
+}
+
+.button-group button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .debug-box {
@@ -163,40 +281,19 @@ onUnmounted(() => {
 }
 
 .debug-box h3 {
-  margin: 0 0 10px 0;
+  margin-top: 0;
+  margin-bottom: 10px;
+  text-align: center;
   color: #333;
-  border-bottom: 1px solid #333;
-  padding-bottom: 5px;
 }
 
 .debug-item {
-  margin: 8px 0;
-  font-size: 12px;
-  line-height: 1.4;
+  margin-bottom: 5px;
+  font-size: 0.85rem;
+  line-height: 1.3;
 }
 
-.controls {
-  display: flex;
-  gap: 10px;
-}
-
-.controls button {
-  padding: 10px 20px;
-  font-size: 14px;
-  font-weight: bold;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.controls button:hover {
-  background-color: #45a049;
-}
-
-.controls button:active {
-  background-color: #3d8b40;
+.debug-item strong {
+  color: #000;
 }
 </style>

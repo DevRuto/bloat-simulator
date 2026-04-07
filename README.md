@@ -8,3 +8,6 @@ Link to GitHub Page: https://devruto.github.io/bloat-simulator/
 
 ## Heavy AI usage with SWE-1.5 model
 Impressive speed with this model. Quite a few logic errors were found and fixed, but the speed of development was impressive.
+
+## TODO - Duo tob stuff
+- [ ] Ranger/Mager attack ticks

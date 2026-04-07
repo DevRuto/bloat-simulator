@@ -12,7 +12,6 @@ const updateInterval = ref(null)
 const debugInfo = ref({
   bloatPosition: { x: 0, y: 0 },
   isRunning: false,
-  moveCount: 0,
   validPositions: 0,
   currentTick: 0,
   isWalking: true,
@@ -32,7 +31,8 @@ const startSimulation = () => {
     tickInterval.value = setInterval(() => {
       const result = simulation.processTick()
       if (result.shouldReset) {
-        resetSimulation()
+        // resetSimulation()
+        pauseSimulation()
       }
     }, 600)
   }
@@ -49,7 +49,6 @@ const pauseSimulation = () => {
 const resetSimulation = () => {
   pauseSimulation()
   simulation.resetState()
-  debugInfo.value.moveCount = 0
   updateTiles()
 }
 
@@ -64,8 +63,6 @@ const updateTiles = () => {
   debugInfo.value = {
     bloatPosition: { ...simulation.bloatPosition },
     isRunning: isRunning.value,
-    moveCount: debugInfo.value.moveCount + 1,
-    validPositions: simulation.getValidBloatPositions().length,
     currentTick: simState.currentTick,
     isWalking: simState.isWalking,
     isRunningState: simState.isRunningState,
@@ -126,9 +123,6 @@ onUnmounted(() => {
         <strong>Current Tick:</strong> {{ debugInfo.currentTick }}
       </div>
       <div class="debug-item">
-        <strong>Move Count:</strong> {{ debugInfo.moveCount }}
-      </div>
-      <div class="debug-item">
         <strong>Direction:</strong> {{ debugInfo.direction.toUpperCase() }}
       </div>
       <div class="debug-item">
@@ -139,9 +133,6 @@ onUnmounted(() => {
       </div>
       <div class="debug-item">
         <strong>Can Fall:</strong> {{ debugInfo.canFall ? 'Yes (39-51t)' : 'No' }}
-      </div>
-      <div class="debug-item">
-        <strong>Valid Positions:</strong> {{ debugInfo.validPositions }}
       </div>
     </div>
   </div>

@@ -70,30 +70,6 @@ export class BloatSimulation {
     }
   }
 
-  // Check if position is valid (within bounds and not in pillar)
-  isValidPosition(x, y) {
-    if (x < 0 || x > GRID_SIZE - BLOAT_SIZE || y < 0 || y > GRID_SIZE - BLOAT_SIZE) {
-      return false
-    }
-
-    // Check if any part of bloat would overlap with pillar
-    const pillarStart = Math.floor((GRID_SIZE - PILLAR_SIZE) / 2)
-    const pillarEnd = pillarStart + PILLAR_SIZE - 1
-
-    for (let dy = 0; dy < BLOAT_SIZE; dy++) {
-      for (let dx = 0; dx < BLOAT_SIZE; dx++) {
-        const checkX = x + dx
-        const checkY = y + dy
-
-        if (checkX >= pillarStart && checkX <= pillarEnd && checkY >= pillarStart && checkY <= pillarEnd) {
-          return false
-        }
-      }
-    }
-
-    return true
-  }
-
   // Get valid bloat positions (outside the pillar)
   getValidBloatPositions() {
     const positions = []
@@ -131,9 +107,33 @@ export class BloatSimulation {
     return positions
   }
 
+  // Check if position is valid (within bounds and not in pillar)
+  isValidPosition(x, y) {
+    if (x < 0 || x > GRID_SIZE - BLOAT_SIZE || y < 0 || y > GRID_SIZE - BLOAT_SIZE) {
+      return false
+    }
+
+    // Check if any part of bloat would overlap with pillar
+    const pillarStart = Math.floor((GRID_SIZE - PILLAR_SIZE) / 2)
+    const pillarEnd = pillarStart + PILLAR_SIZE - 1
+
+    for (let dy = 0; dy < BLOAT_SIZE; dy++) {
+      for (let dx = 0; dx < BLOAT_SIZE; dx++) {
+        const checkX = x + dx
+        const checkY = y + dy
+
+        if (checkX >= pillarStart && checkX <= pillarEnd && checkY >= pillarStart && checkY <= pillarEnd) {
+          return false
+        }
+      }
+    }
+
+    return true
+  }
+
   // Move bloat one tile in current direction
   moveBloatStep() {
-    const stepSize = 1 // Always move 1 tile (walking speed)
+    const stepSize = this.isRunningState ? 2 : 1
     let newX = this.bloatPosition.x
     let newY = this.bloatPosition.y
     let moved = false
@@ -223,12 +223,6 @@ export class BloatSimulation {
         this.direction = 'right'
         break
     }
-    this.isWalking = true
-    this.isRunningState = false
-    this.turnCooldown = 0
-    this.canFall = false
-    this.direction = 'right'
-    this.initializeGrid()
   }
 
   // Process a single tick
@@ -246,7 +240,7 @@ export class BloatSimulation {
 
       // 1/4 chance to fall if can fall and hasn't turned in last 5 ticks
       if (this.turnCooldown === 0 && Math.random() < 0.25) {
-        // Bloat falls - return signal to reset
+        // Bloat falls - reset simulation
         return { shouldReset: true }
       }
     }
@@ -254,10 +248,9 @@ export class BloatSimulation {
     // 1/16 chance to turn if off cooldown
     if (this.turnCooldown === 0 && Math.random() < (1/16)) {
       this.turnCooldown = 32
-      // Note: isRunningState flag kept but no longer toggles movement speed
     }
 
-    // Move bloat (always at walking speed)
+    // Move bloat
     this.moveBloatStep()
 
     return { shouldReset: false }

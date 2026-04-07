@@ -1,18 +1,18 @@
 <template>
-  <div class="bloat-room">
-    <div class="grid-container">
+  <div class="flex flex-col items-center p-5 font-mono">
+    <div class="grid grid-cols-16 grid-rows-16 gap-0 border-4 border-black mb-5" style="grid-template-columns: repeat(16, 25px); grid-template-rows: repeat(16, 25px);">
       <div
         v-for="(tile, index) in tilesData"
         :key="index"
-        class="tile"
+        class="w-6 h-6 flex items-center justify-center text-xs font-bold relative"
         :class="{
-          'bloat': tile.isBloat,
-          'pillar': tile.isPillar,
-          'floor': tile.isFloor
+          'bg-gray-800 border-2 border-black text-white': tile.isBloat,
+          'bg-black border-2 border-gray-600': tile.isPillar,
+          'bg-gray-100 border-2 border-gray-600': tile.isFloor
         }"
       >
-        <div v-if="tile.isBloat && isCenterTile(tile)" class="bloat-entity">
-          <div class="direction-indicator">
+        <div v-if="tile.isBloat && isCenterTile(tile)" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white font-bold text-xs drop-shadow-lg">
+          <div class="text-xl font-bold text-white drop-shadow-lg">
             {{ getDirectionSymbol() }}
           </div>
         </div>
@@ -112,82 +112,11 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.bloat-room {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px;
-  font-family: 'Courier New', monospace;
-}
-
-.grid-container {
-  display: grid;
+/* Custom styles for grid sizing that can't be handled by Tailwind */
+.grid {
   grid-template-columns: repeat(16, 25px);
   grid-template-rows: repeat(16, 25px);
-  gap: 2px;
-  /* background-color: #222; */
-  border: 3px solid #000;
-  margin-bottom: 20px;
 }
 
-.tile {
-  width: 25px;
-  height: 25px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 7px;
-  font-weight: bold;
-  position: relative;
-}
-
-.tile.floor {
-  background-color: #f0f0f0;
-  border: 2px solid #888;
-}
-
-.tile.pillar {
-  background-color: #000000;
-  border: 2px solid #444;
-}
-
-.tile.bloat {
-  background-color: #333333;
-  border: 2px solid #000000;
-  color: white;
-}
-
-.bloat-entity {
-  font-size: 7px;
-  font-weight: bold;
-  color: white;
-  text-shadow: 1px 1px 2px black;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.direction-indicator {
-  font-size: 20px;
-  font-weight: bold;
-  color: white;
-  text-shadow: 2px 2px 4px black;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.direction-indicator.rotate-down {
-  transform: translate(-50%, -50%) rotate(90deg);
-}
-
-.direction-indicator.rotate-left {
-  transform: translate(-50%, -50%) rotate(180deg);
-}
-
-.direction-indicator.rotate-up {
-  transform: translate(-50%, -50%) rotate(-90deg);
-}
+/* Additional custom styles if needed */
 </style>

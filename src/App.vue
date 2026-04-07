@@ -5,6 +5,7 @@ import { BloatSimulation } from './composables/useBloatSimulation.js'
 
 const turnDirection = ref('clockwise')
 const positionOffset = ref(0)
+const msPerTick = ref(600)
 let simulation = new BloatSimulation(turnDirection.value, positionOffset.value)
 const tiles = ref(simulation.getTiles())
 const isRunning = ref(false)
@@ -21,7 +22,8 @@ const debugInfo = ref({
   canFall: false,
   direction: 'right',
   turnDirection: 'clockwise',
-  positionOffset: 0
+  positionOffset: 0,
+  msPerTick: 600
 })
 
 const bloatRoomRef = ref(null)
@@ -41,14 +43,14 @@ const recreateSimulation = () => {
 const startSimulation = () => {
   if (!isRunning.value) {
     isRunning.value = true
-    // Process ticks every 600ms (0.6 seconds per tick)
+    // Process ticks every msPerTick milliseconds
     tickInterval.value = setInterval(() => {
       const result = simulation.processTick()
       if (result.shouldReset) {
         // resetSimulation()
         pauseSimulation()
       }
-    }, 600)
+    }, msPerTick.value)
   }
 }
 
@@ -84,7 +86,8 @@ const updateTiles = () => {
     canFall: simState.canFall,
     direction: simState.direction,
     turnDirection: turnDirection.value,
-    positionOffset: positionOffset.value
+    positionOffset: positionOffset.value,
+    msPerTick: msPerTick.value
   }
 
   // Update BloatRoom component
@@ -174,10 +177,27 @@ onUnmounted(() => {
           <strong>Speed:</strong> Walking (1 tile/tick)
         </div>
         <div class="debug-item">
+          <label class="flex flex-col gap-1 text-xs">
+            <strong>Speed (ms per tick):</strong>
+            <input
+              type="number"
+              v-model.number="msPerTick"
+              placeholder="600"
+              min="50"
+              max="5000"
+              step="50"
+              class="p-1 border border-gray-300 rounded text-xs w-20"
+            >
+          </label>
+        </div>
+        <div class="debug-item">
           <strong>Turn Cooldown:</strong> {{ debugInfo.turnCooldown }}t
         </div>
         <div class="debug-item">
           <strong>Can Fall:</strong> {{ debugInfo.canFall ? 'Yes (39-51t)' : 'No' }}
+        </div>
+        <div class="debug-item">
+          <strong>Valid Positions:</strong> {{ debugInfo.validPositions }}
         </div>
       </div>
     </div>

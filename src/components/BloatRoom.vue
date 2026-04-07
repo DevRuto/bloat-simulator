@@ -96,7 +96,6 @@ const initializeEmptyGrid = () => {
 
 // Method to update tiles
 function updateTiles(newTiles) {
-  console.log('Tiles updated:', newTiles?.length || 0, 'tiles')
   if (newTiles && Array.isArray(newTiles)) {
     tilesData.value = [...newTiles]
   }

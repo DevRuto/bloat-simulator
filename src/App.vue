@@ -14,7 +14,6 @@ const updateInterval = ref(null)
 const debugInfo = ref({
   bloatPosition: { x: 0, y: 0 },
   isRunning: false,
-  validPositions: 0,
   currentTick: 0,
   isWalking: true,
   isRunningState: false,
@@ -77,7 +76,6 @@ const updateTiles = () => {
   debugInfo.value = {
     bloatPosition: { ...simulation.bloatPosition },
     isRunning: isRunning.value,
-    validPositions: simulation.getValidBloatPositions().length,
     currentTick: simState.currentTick,
     isWalking: simState.isWalking,
     isRunningState: simState.isRunningState,
@@ -178,9 +176,6 @@ onUnmounted(() => {
         </div>
         <div class="debug-item">
           <strong>Can Fall:</strong> {{ debugInfo.canFall ? 'Yes (39-51t)' : 'No' }}
-        </div>
-        <div class="debug-item">
-          <strong>Valid Positions:</strong> {{ debugInfo.validPositions }}
         </div>
       </div>
     </div>

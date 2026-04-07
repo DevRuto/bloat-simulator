@@ -6,7 +6,7 @@ import { BloatSimulation } from './composables/useBloatSimulation.js'
 // Get query parameters
 const urlParams = new URLSearchParams(window.location.search)
 const turnDirection = ref(urlParams.get('turnDirection') || 'clockwise')
-const positionOffset = ref(parseInt(urlParams.get('positionOffset')) || 0)
+const positionOffset = ref(parseInt(urlParams.get('positionOffset')) || -5)
 const msPerTick = ref(parseInt(urlParams.get('msPerTick')) || 600)
 let simulation = new BloatSimulation(turnDirection.value, positionOffset.value)
 const tiles = ref(simulation.getTiles())

@@ -26,14 +26,14 @@
           type="range"
           :value="msPerTick"
           @input="emit('update:msPerTick', parseInt($event.target.value))"
-          min="100"
+          min="0"
           max="600"
           step="50"
           :disabled="isRunning"
           class="w-full h-2 bg-gradient-to-r from-green-400 via-yellow-400 to-red-400 rounded-lg appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed slider"
         />
         <div class="flex justify-between text-xs text-gray-600">
-          <span>100ms (Fast)</span>
+          <span>0ms (Instant)</span>
           <span>600ms (Slow)</span>
         </div>
       </label>

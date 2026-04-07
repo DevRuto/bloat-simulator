@@ -88,14 +88,31 @@ const updateSpeedURL = () => {
 const startSimulation = () => {
   if (!isRunning.value) {
     isRunning.value = true
-    // Process ticks every msPerTick milliseconds
-    tickInterval.value = setInterval(() => {
-      const result = simulation.processTick()
-      if (result.shouldReset) {
-        // resetSimulation()
-        pauseSimulation()
+
+    if (msPerTick.value === 0) {
+      // Instant mode - run all ticks immediately
+      const runInstantSimulation = () => {
+        const result = simulation.processTick()
+        updateTiles() // Update after each tick for real-time feedback
+
+        if (result.shouldReset) {
+          pauseSimulation()
+        } else if (isRunning.value) {
+          // Continue with next tick using requestAnimationFrame for UI updates
+          requestAnimationFrame(runInstantSimulation)
+        }
       }
-    }, msPerTick.value)
+      runInstantSimulation()
+    } else {
+      // Normal mode - use setInterval
+      tickInterval.value = setInterval(() => {
+        const result = simulation.processTick()
+        if (result.shouldReset) {
+          // resetSimulation()
+          pauseSimulation()
+        }
+      }, msPerTick.value)
+    }
   }
 }
 
@@ -144,7 +161,9 @@ const updateTiles = () => {
 // Set up interval to update tiles during animation
 const startWithUpdates = () => {
   startSimulation()
-  updateInterval.value = setInterval(updateTiles, 100)
+  if (msPerTick.value > 0) {
+    updateInterval.value = setInterval(updateTiles, 100)
+  }
 }
 
 const pauseWithUpdates = () => {
@@ -237,7 +256,7 @@ onUnmounted(() => {
           <strong class="text-black">Position Offset:</strong> {{ debugInfo.positionOffset }}
         </div>
         <div class="mb-1.5 text-sm leading-relaxed">
-          <strong class="text-black">Speed:</strong> Walking (1 tile/tick) - {{ msPerTick }}ms per tick
+          <strong class="text-black">Speed:</strong> Walking (1 tile/tick) - {{ msPerTick === 0 ? 'Instant' : msPerTick + 'ms per tick' }}
         </div>
         <div class="mb-1.5 text-sm leading-relaxed">
           <strong class="text-black">Turn Cooldown:</strong> {{ debugInfo.turnCooldown }}t

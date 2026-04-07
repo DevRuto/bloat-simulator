@@ -5,6 +5,10 @@ import { BloatSimulation } from './composables/useBloatSimulation.js'
 
 const simulation = new BloatSimulation()
 const tiles = ref(simulation.getTiles())
+const isRunning = ref(false)
+const tickInterval = ref(null)
+const updateInterval = ref(null)
+
 const debugInfo = ref({
   bloatPosition: { x: 0, y: 0 },
   isRunning: false,
@@ -17,12 +21,34 @@ const debugInfo = ref({
   canFall: false,
   direction: 'right'
 })
+
 const bloatRoomRef = ref(null)
 
-const startSimulation = () => simulation.startSimulation()
-const pauseSimulation = () => simulation.pauseSimulation()
+// Animation controls
+const startSimulation = () => {
+  if (!isRunning.value) {
+    isRunning.value = true
+    // Process ticks every 600ms (0.6 seconds per tick)
+    tickInterval.value = setInterval(() => {
+      const result = simulation.processTick()
+      if (result.shouldReset) {
+        resetSimulation()
+      }
+    }, 600)
+  }
+}
+
+const pauseSimulation = () => {
+  isRunning.value = false
+  if (tickInterval.value) {
+    clearInterval(tickInterval.value)
+    tickInterval.value = null
+  }
+}
+
 const resetSimulation = () => {
-  simulation.resetSimulation()
+  pauseSimulation()
+  simulation.resetState()
   debugInfo.value.moveCount = 0
   updateTiles()
 }
@@ -37,7 +63,7 @@ const updateTiles = () => {
 
   debugInfo.value = {
     bloatPosition: { ...simulation.bloatPosition },
-    isRunning: simulation.isRunning,
+    isRunning: isRunning.value,
     moveCount: debugInfo.value.moveCount + 1,
     validPositions: simulation.getValidBloatPositions().length,
     currentTick: simState.currentTick,
@@ -55,23 +81,20 @@ const updateTiles = () => {
 }
 
 // Set up interval to update tiles during animation
-let updateInterval = null
-
 const startWithUpdates = () => {
   startSimulation()
-  updateInterval = setInterval(updateTiles, 100)
+  updateInterval.value = setInterval(updateTiles, 100)
 }
 
 const pauseWithUpdates = () => {
   pauseSimulation()
-  if (updateInterval) {
-    clearInterval(updateInterval)
-    updateInterval = null
+  if (updateInterval.value) {
+    clearInterval(updateInterval.value)
+    updateInterval.value = null
   }
 }
 
 onMounted(() => {
-  tiles.value = simulation.getTiles()
   updateTiles() // Initial update
 })
 
@@ -109,7 +132,7 @@ onUnmounted(() => {
         <strong>Direction:</strong> {{ debugInfo.direction.toUpperCase() }}
       </div>
       <div class="debug-item">
-        <strong>Speed:</strong> {{ debugInfo.isRunningState ? 'Running (2 tiles/tick)' : 'Walking (1 tile/tick)' }}
+        <strong>Speed:</strong> Walking (1 tile/tick)
       </div>
       <div class="debug-item">
         <strong>Turn Cooldown:</strong> {{ debugInfo.turnCooldown }}t

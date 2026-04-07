@@ -4,11 +4,11 @@
       <div
         v-for="(tile, index) in tilesData"
         :key="index"
-        class="w-6 h-6 flex items-center justify-center text-xs font-bold relative"
+        class="w-[25px] h-[25px] flex items-center justify-center text-xs font-bold relative"
         :class="{
-          'bg-gray-800 border-2 border-black text-white': tile.isBloat,
-          'bg-black border-2 border-gray-600': tile.isPillar,
-          'bg-gray-100 border-2 border-gray-600': tile.isFloor
+          'bg-gray-800 text-white border-0': tile.isBloat,
+          'bg-black border border-black': tile.isPillar,
+          'bg-gray-100 border border-black': tile.isFloor
         }"
       >
         <div v-if="tile.isBloat && isCenterTile(tile)" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white font-bold text-xs drop-shadow-lg">
@@ -17,6 +17,26 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <div class="w-full max-w-md">
+      <label class="flex flex-col gap-2">
+        <span class="text-sm font-medium text-center">Speed ({{ msPerTick }}ms per tick)</span>
+        <input
+          type="range"
+          :value="msPerTick"
+          @input="emit('update:msPerTick', parseInt($event.target.value))"
+          min="100"
+          max="600"
+          step="50"
+          :disabled="isRunning"
+          class="w-full h-2 bg-gradient-to-r from-green-400 via-yellow-400 to-red-400 rounded-lg appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed slider"
+        />
+        <div class="flex justify-between text-xs text-gray-600">
+          <span>100ms (Fast)</span>
+          <span>600ms (Slow)</span>
+        </div>
+      </label>
     </div>
   </div>
 </template>
@@ -28,8 +48,18 @@ const props = defineProps({
   direction: {
     type: String,
     default: 'right'
+  },
+  msPerTick: {
+    type: Number,
+    default: 600
+  },
+  isRunning: {
+    type: Boolean,
+    default: false
   }
 })
+
+const emit = defineEmits(['update:msPerTick'])
 
 const tilesData = ref([])
 
@@ -118,5 +148,51 @@ onMounted(() => {
   grid-template-rows: repeat(16, 25px);
 }
 
-/* Additional custom styles if needed */
+/* Custom slider styling */
+.slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: white;
+  border: 3px solid #3b82f6;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: white;
+  border: 3px solid #3b82f6;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.slider::-moz-range-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.slider:disabled::-webkit-slider-thumb {
+  background: #9ca3af;
+  border-color: #6b7280;
+  cursor: not-allowed;
+  transform: scale(1);
+}
+
+.slider:disabled::-moz-range-thumb {
+  background: #9ca3af;
+  border-color: #6b7280;
+  cursor: not-allowed;
+  transform: scale(1);
+}
 </style>

@@ -66,6 +66,12 @@ const recreateSimulation = () => {
   }
 }
 
+// Update speed when slider changes
+const updateSpeed = (value) => {
+  msPerTick.value = parseInt(value)
+  updateSpeedURL()
+}
+
 // Update URL when speed changes
 const updateSpeedURL = () => {
   const params = new URLSearchParams(window.location.search)
@@ -162,7 +168,13 @@ onUnmounted(() => {
   <div class="flex flex-row items-start p-8 gap-8">
     <div class="flex flex-row gap-8 items-start">
       <div class="flex flex-col gap-5 items-center">
-        <BloatRoom ref="bloatRoomRef" :direction="debugInfo.direction" />
+        <BloatRoom
+          ref="bloatRoomRef"
+          :direction="debugInfo.direction"
+          :msPerTick="msPerTick"
+          :isRunning="isRunning"
+          @update:msPerTick="updateSpeed"
+        />
 
         <div class="flex flex-col gap-4 p-4 bg-gray-100 rounded-lg border-2 border-gray-300 w-full max-w-md">
           <div class="flex gap-4 items-end justify-center">
@@ -225,22 +237,7 @@ onUnmounted(() => {
           <strong class="text-black">Position Offset:</strong> {{ debugInfo.positionOffset }}
         </div>
         <div class="mb-1.5 text-sm leading-relaxed">
-          <strong class="text-black">Speed:</strong> Walking (1 tile/tick)
-        </div>
-        <div class="mb-1.5 text-sm leading-relaxed">
-          <label class="flex flex-col gap-1 text-xs">
-            <strong class="text-black">Speed (ms per tick):</strong>
-            <input
-              type="number"
-              v-model.number="msPerTick"
-              @change="updateSpeedURL"
-              placeholder="600"
-              min="50"
-              max="5000"
-              step="50"
-              class="p-1 border border-gray-300 rounded text-xs w-20"
-            >
-          </label>
+          <strong class="text-black">Speed:</strong> Walking (1 tile/tick) - {{ msPerTick }}ms per tick
         </div>
         <div class="mb-1.5 text-sm leading-relaxed">
           <strong class="text-black">Turn Cooldown:</strong> {{ debugInfo.turnCooldown }}t

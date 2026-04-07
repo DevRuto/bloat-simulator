@@ -7,7 +7,7 @@ import { BloatSimulation } from './composables/useBloatSimulation.js'
 const urlParams = new URLSearchParams(window.location.search)
 const turnDirection = ref(urlParams.get('turnDirection') || 'clockwise')
 const positionOffset = ref(parseInt(urlParams.get('positionOffset')) || -5)
-const msPerTick = ref(parseInt(urlParams.get('msPerTick')) || 600)
+const msPerTick = ref(parseInt(urlParams.get('msPerTick')) || 0)
 let simulation = new BloatSimulation(turnDirection.value, positionOffset.value)
 const tiles = ref(simulation.getTiles())
 const isRunning = ref(false)
@@ -130,6 +130,13 @@ const resetSimulation = () => {
   updateTiles()
 }
 
+const restartSimulation = () => {
+  pauseSimulation()
+  simulation.resetState()
+  updateTiles()
+  startWithUpdates()
+}
+
 // Update tiles when simulation changes
 const updateTiles = () => {
   const newTiles = simulation.getTiles()
@@ -231,6 +238,7 @@ onUnmounted(() => {
             <button @click="startWithUpdates" :disabled="isRunning" class="px-4 py-2 border border-gray-300 rounded bg-white cursor-pointer text-sm transition-colors hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">Start</button>
             <button @click="pauseWithUpdates" :disabled="!isRunning" class="px-4 py-2 border border-gray-300 rounded bg-white cursor-pointer text-sm transition-colors hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">Pause</button>
             <button @click="resetSimulation" class="px-4 py-2 border border-gray-300 rounded bg-white cursor-pointer text-sm transition-colors hover:bg-gray-50">Reset</button>
+            <button @click="restartSimulation" class="px-4 py-2 border border-blue-300 rounded bg-blue-50 cursor-pointer text-sm transition-colors hover:bg-blue-100">Restart</button>
           </div>
         </div>
       </div>

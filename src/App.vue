@@ -129,7 +129,7 @@ onUnmounted(() => {
           <div class="control-group">
             <label>
               Turn Direction:
-              <select v-model="turnDirection" @change="recreateSimulation">
+              <select v-model="turnDirection" @change="recreateSimulation" :disabled="isRunning" class="disabled:opacity-50 disabled:cursor-not-allowed">
                 <option value="clockwise">Clockwise</option>
                 <option value="counterclockwise">Counterclockwise</option>
               </select>
@@ -141,7 +141,8 @@ onUnmounted(() => {
                 v-model.number="positionOffset"
                 @change="recreateSimulation"
                 placeholder="0"
-                class="p-2 border border-gray-300 rounded text-sm min-w-32"
+                :disabled="isRunning"
+                class="p-2 border border-gray-300 rounded text-sm min-w-32 disabled:opacity-50 disabled:cursor-not-allowed"
               >
             </label>
           </div>

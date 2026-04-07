@@ -252,8 +252,6 @@ export class BloatSimulation {
     // 1/16 chance to turn if off cooldown
     if (this.turnCooldown === 0 && Math.random() < (1/16)) {
       this.turnCooldown = 32
-      // Toggle between walking and running
-      this.isRunningState = !this.isRunningState
     }
 
     // Move bloat

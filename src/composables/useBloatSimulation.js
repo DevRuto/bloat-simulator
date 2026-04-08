@@ -10,7 +10,7 @@ export class BloatSimulation {
     this.currentTick = 0
     this.isWalking = true
     this.isRunningState = false
-    this.turnCooldown = 0
+    this.turnCooldown = 32
     this.canFall = false
     this.direction = 'right'
     this.turnDirection = turnDirection // 'clockwise' or 'counterclockwise'
@@ -367,6 +367,8 @@ export class BloatSimulation {
     // 1/16 chance to turn if off cooldown
     if (this.turnCooldown === 0 && Math.random() < 1 / 16) {
       this.turnCooldown = 32
+      this.turnClockwise()
+      this.turnClockwise()
     }
 
     // Move bloat
@@ -398,7 +400,7 @@ export class BloatSimulation {
     this.currentTick = 0
     this.isWalking = true
     this.isRunningState = false
-    this.turnCooldown = 0
+    this.turnCooldown = 32
     this.canFall = false
     this.initializeGrid()
   }

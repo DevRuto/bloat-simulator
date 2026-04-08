@@ -162,21 +162,15 @@ async function main() {
     console.log(`Turn Direction: ${SIM_CONFIG.turnDirection}`)
     console.log(`Position Offset: ${SIM_CONFIG.positionOffset} (${offsetDesc})`)
 
-    // console.log('')
-    // console.log('Fall Tick | Flinchable | Mage Tick | Mage Fix          | Ranger Tick | Ranger Fix')
-    // console.log('----------|------------|-----------|-------------------|-------------|----------------')
-    // for (const result of results) {
-    //   if (result.totalTicks !== -1) {
-    //     const mageFix = TICK_FIXES[result.mageTick] || 'Unknown'
-    //     const rangeFix = TICK_FIXES[result.rangeTick] || 'Unknown'
-    //     console.log(`${result.totalTicks.toString().padStart(9)} | ${(result.flinchable ? 'Yes' : 'No').padStart(10)} | ${result.mageTick.toString().padStart(9)} | ${mageFix.padEnd(17)} | ${result.rangeTick.toString().padStart(11)} | ${rangeFix.padEnd(11)}`)
-    //   }
-    // }
-
     if (uniqueFallTicks.length > 0) {
-      console.log('Tick counts when bloat fell:')
+      console.log('')
+      console.log('Tick | Count   | Flinchable | Mage Tick | Mage Fix          | Range Tick | Range Fix')
+      console.log('-----|---------|------------|-----------|-------------------|------------|-------------')
+
       const tickCounts = {}
       const tickFlinchable = {}
+      const mageTicks = {}
+      const rangeTicks = {}
 
       fallTicks.forEach(result => {
         const tick = result.totalTicks
@@ -189,17 +183,29 @@ async function main() {
           // If we have both flinchable and non-flinchable for same tick, mark as mixed
           tickFlinchable[tick] = 'mixed'
         }
+
+        // Track mage and range ticks for this fall tick
+        if (!Object.prototype.hasOwnProperty.call(mageTicks, tick)) {
+          mageTicks[tick] = result.mageTick
+        }
+        if (!Object.prototype.hasOwnProperty.call(rangeTicks, tick)) {
+          rangeTicks[tick] = result.rangeTick
+        }
       })
 
       Object.entries(tickCounts)
         .sort((a, b) => b[1] - a[1])
         .forEach(([tick, count]) => {
           const flinchableStatus = tickFlinchable[tick]
-          let statusText = ' - not flinchable'
+          let statusText = 'No'
           if (flinchableStatus === true) {
-            statusText = ' - flinchable'
+            statusText = 'Yes'
+          } else if (flinchableStatus === 'mixed') {
+            statusText = 'Mixed'
           }
-          console.log(`  Tick ${tick}: ${count} times${statusText}`)
+          const mageTick = mageTicks[tick]
+          const rangeTick = rangeTicks[tick]
+          console.log(`${tick.padStart(4)} | ${count.toLocaleString().padStart(7)} | ${statusText.padStart(10)} | ${mageTick.toString().padStart(9)} | ${TICK_FIXES[mageTick]?.padEnd(17) || 'Unknown'.padEnd(17)} | ${rangeTick.toString().padStart(10)} | ${TICK_FIXES[rangeTick]?.padEnd(11) || 'Unknown'.padEnd(11)}`)
         })
     }
 

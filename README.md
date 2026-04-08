@@ -13,5 +13,7 @@ Impressive speed with this model. Quite a few logic errors were found and fixed,
 - The simulation script is in `sim.js` and can be run with `node sim.js`
 - The turn direction doesn't really matter for the current use case so far
 
-## TODO - Duo tob stuff
-- [ ] Ranger/Mager attack ticks
+## Important
+- This was a very quick and dirty simulation script
+- There could be bugs in the simulation logic.
+- I'm not sure what other sources of info exist for this stuff

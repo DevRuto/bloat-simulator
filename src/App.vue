@@ -25,7 +25,7 @@ const debugInfo = ref({
   direction: 'right',
   turnDirection: turnDirection.value,
   positionOffset: positionOffset.value,
-  msPerTick: msPerTick.value
+  msPerTick: msPerTick.value,
 })
 
 const infoLog = ref([])
@@ -46,7 +46,9 @@ const updateURL = () => {
     params.set('msPerTick', msPerTick.value.toString())
   }
 
-  const newURL = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname
+  const newURL = params.toString()
+    ? `${window.location.pathname}?${params.toString()}`
+    : window.location.pathname
   window.history.replaceState({}, '', newURL)
 }
 
@@ -84,7 +86,9 @@ const updateSpeedURL = () => {
     params.delete('msPerTick')
   }
 
-  const newURL = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname
+  const newURL = params.toString()
+    ? `${window.location.pathname}?${params.toString()}`
+    : window.location.pathname
   window.history.replaceState({}, '', newURL)
 }
 const startSimulation = () => {
@@ -170,7 +174,7 @@ const updateTiles = () => {
     turnDirection: turnDirection.value,
     positionOffset: positionOffset.value,
     msPerTick: msPerTick.value,
-    flinchable: simState.flinchable
+    flinchable: simState.flinchable,
   }
 
   // Update BloatRoom component
@@ -216,7 +220,9 @@ onUnmounted(() => {
           @update:msPerTick="updateSpeed"
         />
 
-        <div class="flex flex-col gap-4 p-4 bg-gray-100 rounded-lg border-2 border-gray-300 w-full max-w-md">
+        <div
+          class="flex flex-col gap-4 p-4 bg-gray-100 rounded-lg border-2 border-gray-300 w-full max-w-md"
+        >
           <div class="flex gap-4 items-end justify-center">
             <label class="flex flex-col gap-2">
               <span class="text-sm font-medium">Turn Direction:</span>
@@ -245,14 +251,36 @@ onUnmounted(() => {
                 placeholder="0"
                 :disabled="isRunning"
                 class="p-2 border border-gray-300 rounded text-sm min-w-32 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
+              />
             </label>
           </div>
           <div class="flex gap-2 justify-center">
-            <button @click="startWithUpdates" :disabled="isRunning" class="px-4 py-2 border border-gray-300 rounded bg-white cursor-pointer text-sm transition-colors hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">Start</button>
-            <button @click="pauseWithUpdates" :disabled="!isRunning" class="px-4 py-2 border border-gray-300 rounded bg-white cursor-pointer text-sm transition-colors hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">Pause</button>
-            <button @click="resetSimulation" class="px-4 py-2 border border-gray-300 rounded bg-white cursor-pointer text-sm transition-colors hover:bg-gray-50">Reset</button>
-            <button @click="restartSimulation" class="px-4 py-2 border border-blue-300 rounded bg-blue-50 cursor-pointer text-sm transition-colors hover:bg-blue-100">Restart</button>
+            <button
+              @click="startWithUpdates"
+              :disabled="isRunning"
+              class="px-4 py-2 border border-gray-300 rounded bg-white cursor-pointer text-sm transition-colors hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Start
+            </button>
+            <button
+              @click="pauseWithUpdates"
+              :disabled="!isRunning"
+              class="px-4 py-2 border border-gray-300 rounded bg-white cursor-pointer text-sm transition-colors hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Pause
+            </button>
+            <button
+              @click="resetSimulation"
+              class="px-4 py-2 border border-gray-300 rounded bg-white cursor-pointer text-sm transition-colors hover:bg-gray-50"
+            >
+              Reset
+            </button>
+            <button
+              @click="restartSimulation"
+              class="px-4 py-2 border border-blue-300 rounded bg-blue-50 cursor-pointer text-sm transition-colors hover:bg-blue-100"
+            >
+              Restart
+            </button>
           </div>
         </div>
       </div>
@@ -261,10 +289,12 @@ onUnmounted(() => {
         <div class="bg-gray-100 border-2 border-gray-800 rounded-lg p-4 min-w-48 font-mono">
           <h3 class="mt-0 mb-2.5 text-center text-gray-800">Debug Info</h3>
           <div class="mb-1.5 text-sm leading-relaxed">
-            <strong class="text-black">Bloat Position:</strong> ({{ debugInfo.bloatPosition.x }}, {{ debugInfo.bloatPosition.y }})
+            <strong class="text-black">Bloat Position:</strong> ({{ debugInfo.bloatPosition.x }},
+            {{ debugInfo.bloatPosition.y }})
           </div>
           <div class="mb-1.5 text-sm leading-relaxed">
-            <strong class="text-black">Status:</strong> {{ debugInfo.isRunning ? 'Running' : 'Paused' }}
+            <strong class="text-black">Status:</strong>
+            {{ debugInfo.isRunning ? 'Running' : 'Paused' }}
           </div>
           <div class="mb-1.5 text-sm leading-relaxed">
             <strong class="text-black">Current Tick:</strong> {{ debugInfo.currentTick }}
@@ -279,26 +309,42 @@ onUnmounted(() => {
             <strong class="text-black">Position Offset:</strong> {{ debugInfo.positionOffset }}
           </div>
           <div class="mb-1.5 text-sm leading-relaxed">
-            <strong class="text-black">Speed:</strong> Walking (1 tile/tick) - {{ msPerTick === 0 ? 'Instant' : msPerTick + 'ms per tick' }}
+            <strong class="text-black">Speed:</strong> Walking (1 tile/tick) -
+            {{ msPerTick === 0 ? 'Instant' : msPerTick + 'ms per tick' }}
           </div>
           <div class="mb-1.5 text-sm leading-relaxed">
             <strong class="text-black">Turn Cooldown:</strong> {{ debugInfo.turnCooldown }}t
           </div>
           <div class="mb-1.5 text-sm leading-relaxed">
-            <strong class="text-black">Can Fall:</strong> {{ debugInfo.canFall ? 'Yes (39-51t)' : 'No' }}
+            <strong class="text-black">Can Fall:</strong>
+            {{ debugInfo.canFall ? 'Yes (39-51t)' : 'No' }}
           </div>
           <div class="mb-1.5 text-sm leading-relaxed">
-            <strong class="text-black">Flinchable:</strong> {{ debugInfo.flinchable ? 'Yes' : 'No' }}
+            <strong class="text-black">Flinchable:</strong>
+            {{ debugInfo.flinchable ? 'Yes' : 'No' }}
           </div>
         </div>
 
-        <div class="bg-gray-100 border-2 border-gray-800 rounded-lg p-4 min-w-48 font-mono max-h-96 overflow-y-auto">
+        <div
+          class="bg-gray-100 border-2 border-gray-800 rounded-lg p-4 min-w-48 font-mono max-h-96 overflow-y-auto"
+        >
           <div class="flex justify-between items-center mb-2.5">
             <h3 class="mt-0 text-center text-gray-800">Info Log</h3>
-            <button @click="clearLog" class="px-2 py-1 text-xs border border-gray-300 rounded bg-white hover:bg-gray-50 transition-colors">Clear</button>
+            <button
+              @click="clearLog"
+              class="px-2 py-1 text-xs border border-gray-300 rounded bg-white hover:bg-gray-50 transition-colors"
+            >
+              Clear
+            </button>
           </div>
-          <div v-if="infoLog.length === 0" class="text-sm text-gray-500 italic">No events logged yet</div>
-          <div v-for="(log, index) in infoLog" :key="index" class="mb-1 text-sm leading-relaxed text-gray-700">
+          <div v-if="infoLog.length === 0" class="text-sm text-gray-500 italic">
+            No events logged yet
+          </div>
+          <div
+            v-for="(log, index) in infoLog"
+            :key="index"
+            class="mb-1 text-sm leading-relaxed text-gray-700"
+          >
             {{ log }}
           </div>
         </div>

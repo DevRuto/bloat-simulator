@@ -2,7 +2,7 @@ export class Player {
   constructor(id) {
     this.id = id
     this.currentTick = 0
-    this.attackCooldown = 0;
+    this.attackCooldown = 0
     this.attackTicks = [] // Track all attack ticks
     this.successfulAttacks = [] // Track successful attacks on bloat
     this.isActive = false
@@ -15,7 +15,7 @@ export class Player {
 
   // Process a tick and determine if player attacks
   processTick(bloatPosition) {
-    if (!this.isActive) return;
+    if (!this.isActive) return
     this.currentTick++
 
     if (this.attackCooldown > 0) {
@@ -36,7 +36,7 @@ export class Player {
   recordSuccessfulAttack(bloatPosition) {
     this.successfulAttacks.push({
       tick: this.currentTick,
-      bloatPosition: { ...bloatPosition }
+      bloatPosition: { ...bloatPosition },
     })
   }
 
@@ -48,7 +48,7 @@ export class Player {
       isActive: this.isActive,
       totalAttacks: this.attackTicks.length,
       attackTicks: [...this.attackTicks],
-      successfulAttacks: [...this.successfulAttacks]
+      successfulAttacks: [...this.successfulAttacks],
     }
   }
 

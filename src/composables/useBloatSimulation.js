@@ -29,7 +29,7 @@ export class BloatSimulation {
           y,
           isBloat: false,
           isPillar: false,
-          isFloor: false
+          isFloor: false,
         }
 
         // Center pillar (6x6)
@@ -68,18 +68,18 @@ export class BloatSimulation {
   // Apply position offset along the perimeter
   applyPositionOffset() {
     if (this.positionOffset < 0) {
-      this.turnDirection = this.turnDirection === 'clockwise' ? 'counterclockwise' : 'clockwise';
-      this.turnClockwise();
-      this.turnClockwise();
-      this.turnClockwise();
+      this.turnDirection = this.turnDirection === 'clockwise' ? 'counterclockwise' : 'clockwise'
+      this.turnClockwise()
+      this.turnClockwise()
+      this.turnClockwise()
     }
     for (let i = 0; i < Math.abs(this.positionOffset); i++) {
       this.moveBloatStep()
     }
     if (this.positionOffset < 0) {
-      this.turnClockwise();
-      this.turnClockwise();
-      this.turnDirection = this.turnDirection === 'clockwise' ? 'counterclockwise' : 'clockwise';
+      this.turnClockwise()
+      this.turnClockwise()
+      this.turnDirection = this.turnDirection === 'clockwise' ? 'counterclockwise' : 'clockwise'
     }
   }
 
@@ -87,7 +87,7 @@ export class BloatSimulation {
   updateDirectionForPosition() {
     const validPositions = this.getValidBloatPositions()
     const currentIndex = validPositions.findIndex(
-      pos => pos.x === this.bloatPosition.x && pos.y === this.bloatPosition.y
+      (pos) => pos.x === this.bloatPosition.x && pos.y === this.bloatPosition.y,
     )
 
     if (currentIndex !== -1 && validPositions.length > 1) {
@@ -112,7 +112,7 @@ export class BloatSimulation {
   // Update bloat position on the grid
   updateBloatPosition() {
     // Clear previous bloat position
-    this.tiles.forEach(tile => tile.isBloat = false)
+    this.tiles.forEach((tile) => (tile.isBloat = false))
 
     // Set new bloat position (5x5 area)
     for (let dy = 0; dy < BLOAT_SIZE; dy++) {
@@ -182,7 +182,12 @@ export class BloatSimulation {
         const checkX = x + dx
         const checkY = y + dy
 
-        if (checkX >= pillarStart && checkX <= pillarEnd && checkY >= pillarStart && checkY <= pillarEnd) {
+        if (
+          checkX >= pillarStart &&
+          checkX <= pillarEnd &&
+          checkY >= pillarStart &&
+          checkY <= pillarEnd
+        ) {
           return false
         }
       }
@@ -316,7 +321,7 @@ export class BloatSimulation {
       { x: 0, y: 0 },
       { x: gridSize - bloatSize, y: 0 },
       { x: 0, y: gridSize - bloatSize },
-      { x: gridSize - bloatSize, y: gridSize - bloatSize }
+      { x: gridSize - bloatSize, y: gridSize - bloatSize },
     ]
 
     // Check if bloat is in any corner or 1 tile away from any corner
@@ -347,7 +352,7 @@ export class BloatSimulation {
       this.canFall = true
 
       // Always fall on tick 47 if can fall or 1/4 chance and hasn't turned in last 5 ticks
-      if (this.turnCooldown < 27 && (Math.random() < (1/4) || this.currentTick === 47)) {
+      if (this.turnCooldown < 27 && (Math.random() < 1 / 4 || this.currentTick === 47)) {
         // Bloat falls - reset simulation
         return { shouldReset: true, flinchable: this.isFlinchable() }
       }
@@ -360,7 +365,7 @@ export class BloatSimulation {
     }
 
     // 1/16 chance to turn if off cooldown
-    if (this.turnCooldown === 0 && Math.random() < (1/16)) {
+    if (this.turnCooldown === 0 && Math.random() < 1 / 16) {
       this.turnCooldown = 32
     }
 
@@ -384,7 +389,7 @@ export class BloatSimulation {
       turnCooldown: this.turnCooldown,
       canFall: this.canFall,
       direction: this.direction,
-      flinchable: this.isFlinchable()
+      flinchable: this.isFlinchable(),
     }
   }
 

@@ -1,6 +1,58 @@
 #!/usr/bin/env node
 
 import { BloatSimulation } from './src/composables/useBloatSimulation.js'
+import { Player } from './src/composables/usePlayer.js'
+
+// Simulation parameters
+const SIM_CONFIG = {
+  turnDirection: 'clockwise',     // 'clockwise' or 'counterclockwise'
+  positionOffset: -5,              // Position offset along perimeter
+  maxTicks: 60,                 // Maximum number of ticks
+  simulationCount: 10             // Number of simulations to run
+}
+
+/* Re-entry start positions */
+
+// Mage start position
+const MAGE_START_POSITIONS = {
+  'START_DEFAULT': {
+    'clockwise': {
+      x: 6,
+      y: 11
+    },
+    'counterclockwise': {
+      x: 5,
+      y: 11
+    }
+  }
+}
+
+// Range start positions
+const RANGE_START_POSITIONS = {
+  'START_2_PAST': {
+    'clockwise': {
+      x: 11,
+      y: 2
+    },
+    'counterclockwise': {
+      x: 0,
+      y: 2
+    }
+  },
+  'START_3_PAST': {
+    'clockwise': {
+      x: 11,
+      y: 3
+    },
+    'counterclockwise': {
+      x: 0,
+      y: 3
+    }
+  }
+}
+
+const MAGE_START_FLAG = 'START_DEFAULT';
+const RANGE_START_FLAG = 'START_3_PAST';
 
 // Position offset descriptions
 const OFFSET_DESCRIPTIONS = {
@@ -9,16 +61,29 @@ const OFFSET_DESCRIPTIONS = {
   "-5": "8-fly entry - aligned with pillar",
 }
 
-// Simulation parameters
-const SIM_CONFIG = {
-  turnDirection: 'clockwise',     // 'clockwise' or 'counterclockwise'
-  positionOffset: -5,              // Position offset along perimeter
-  maxTicks: 60,                 // Maximum number of ticks
-  simulationCount: 100000              // Number of simulations to run
+// Tick fix descriptions
+const TICK_FIXES = {
+  32: '6 Scy',
+  31: '6 Scy',
+  30: '1 claw + 5 Scy',
+  29: '2 claw + 4 Scy',
+  28: 'Chally + 4 Scy',
+  27: '5 Scy'
 }
+// const TICK_FIXES = {
+//   32: '6 Scythe + 1 Chally',
+//   31: '6 Scythe + 1 Chally',
+//   30: '1 Claw + 5 Scythe + 1 Chally',
+//   29: '1 Claw + 1 Claw Scratch + 4 Scythe + 1 Chally',
+//   28: '1 Chally + 4 Scythe + 1 Chally',
+//   27: '5 Scyhte + 1 chally'
+// }
 
 async function runSimulation() {
   const simulation = new BloatSimulation(SIM_CONFIG.turnDirection, SIM_CONFIG.positionOffset)
+
+  const magePlayer = new Player('Mager')
+  const rangePlayer = new Player('Ranger')
 
   let totalTicks = 0
 
@@ -27,12 +92,50 @@ async function runSimulation() {
     const result = simulation.processTick()
     totalTicks++
 
+    if (!magePlayer.isActive) {
+      // Check if bloat position matches any mage start position
+      const mageStartPositions = MAGE_START_POSITIONS[MAGE_START_FLAG][SIM_CONFIG.turnDirection]
+      const positionMatches = mageStartPositions.x === simulation.bloatPosition.x
+                            && mageStartPositions.y === simulation.bloatPosition.y
+
+      if (positionMatches) {
+        magePlayer.start(totalTicks)
+      }
+    }
+
+    if (!rangePlayer.isActive) {
+      // Check if bloat position matches any range start position
+      const rangeStartPositions = RANGE_START_POSITIONS[RANGE_START_FLAG][SIM_CONFIG.turnDirection]
+      const positionMatches = rangeStartPositions.x === simulation.bloatPosition.x
+                            && rangeStartPositions.y === simulation.bloatPosition.y
+
+      if (positionMatches) {
+        rangePlayer.start(totalTicks)
+      }
+    }
+
+    if (magePlayer.processTick(simulation.bloatPosition)) {
+      magePlayer.scytheHit()
+    }
+    if (rangePlayer.processTick(simulation.bloatPosition)) {
+      rangePlayer.scytheHit()
+    }
+
     if (result.shouldReset) {
-      return totalTicks;
+      // Bloat will get up in 32 ticks
+      // Determine what tick the player should have attacked to hit the bloat
+      var mageTick = 32 - magePlayer.attackCooldown;
+      var rangeTick = 32 - rangePlayer.attackCooldown;
+      return {
+        totalTicks: totalTicks,
+        mageTick: mageTick,
+        rangeTick: rangeTick,
+        flinchable: result.flinchable
+      };
     }
   }
 
-  return -1;
+  return { totalTicks: -1, mageTick: -1, rangeTick: -1, flinchable: false };
 }
 
 // Main execution
@@ -43,7 +146,7 @@ async function main() {
     const results = []
 
     for (let i = 1; i <= SIM_CONFIG.simulationCount; i++) {
-      const result = await runSimulation(i)
+      const result = await runSimulation()
       results.push(result)
     }
 
@@ -52,26 +155,37 @@ async function main() {
     console.log('=== SUMMARY ===')
 
     // Filter out -1 results (no bloat fall) and get unique tick counts
-    const fallTicks = results.filter(r => r !== -1)
-    const uniqueFallTicks = [...new Set(fallTicks)]
+    const fallTicks = results.filter(r => r.totalTicks !== -1)
+    const uniqueFallTicks = [...new Set(fallTicks.map(r => r.totalTicks))]
 
     const offsetDesc = OFFSET_DESCRIPTIONS[SIM_CONFIG.positionOffset.toString()] || 'N/A'
     console.log(`Turn Direction: ${SIM_CONFIG.turnDirection}`)
     console.log(`Position Offset: ${SIM_CONFIG.positionOffset} (${offsetDesc})`)
 
-    if (uniqueFallTicks.length > 0) {
-      console.log('Tick counts when bloat fell:')
-      const tickCounts = {}
-      fallTicks.forEach(tick => {
-        tickCounts[tick] = (tickCounts[tick] || 0) + 1
-      })
-
-      Object.entries(tickCounts)
-        .sort((a, b) => b[1] - a[1])
-        .forEach(([tick, count]) => {
-          console.log(`  Tick ${tick}: ${count} times`)
-        })
+    console.log('')
+    console.log('Fall Tick | Flinchable | Mage Tick | Mage Fix          | Ranger Tick | Ranger Fix')
+    console.log('----------|------------|-----------|-------------------|-------------|----------------')
+    for (const result of results) {
+      if (result.totalTicks !== -1) {
+        const mageFix = TICK_FIXES[result.mageTick] || 'Unknown'
+        const rangeFix = TICK_FIXES[result.rangeTick] || 'Unknown'
+        console.log(`${result.totalTicks.toString().padStart(9)} | ${(result.flinchable ? 'Yes' : 'No').padStart(10)} | ${result.mageTick.toString().padStart(9)} | ${mageFix.padEnd(17)} | ${result.rangeTick.toString().padStart(11)} | ${rangeFix.padEnd(11)}`)
+      }
     }
+
+    // if (uniqueFallTicks.length > 0) {
+    //   console.log('Tick counts when bloat fell:')
+    //   const tickCounts = {}
+    //   fallTicks.forEach(tick => {
+    //     tickCounts[tick] = (tickCounts[tick] || 0) + 1
+    //   })
+
+    //   Object.entries(tickCounts)
+    //     .sort((a, b) => b[1] - a[1])
+    //     .forEach(([tick, count]) => {
+    //       console.log(`  Tick ${tick}: ${count} times`)
+    //     })
+    // }
 
   } catch (error) {
     console.error('Error:', error.message)

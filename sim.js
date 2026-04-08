@@ -6,7 +6,7 @@ import { Player } from './src/composables/usePlayer.js'
 // Simulation parameters
 const SIM_CONFIG = {
   turnDirection: 'clockwise',     // 'clockwise' or 'counterclockwise'
-  positionOffset: -5,              // Position offset along perimeter
+  positionOffset: -3,              // Position offset along perimeter
   maxTicks: 60,                 // Maximum number of ticks
   simulationCount: 100_000             // Number of simulations to run
 }
@@ -173,40 +173,51 @@ async function main() {
       const rangeTicks = {}
 
       fallTicks.forEach(result => {
-        const tick = result.totalTicks
+        const { totalTicks, flinchable, mageTick, rangeTick } = result
+        const tick = totalTicks
         tickCounts[tick] = (tickCounts[tick] || 0) + 1
 
         // Track if any result for this tick was flinchable
-        if (!Object.prototype.hasOwnProperty.call(tickFlinchable, tick)) {
-          tickFlinchable[tick] = result.flinchable
-        } else if (tickFlinchable[tick] && !result.flinchable) {
-          // If we have both flinchable and non-flinchable for same tick, mark as mixed
+        if (!(tick in tickFlinchable)) {
+          tickFlinchable[tick] = flinchable
+        } else if (tickFlinchable[tick] !== 'mixed' && tickFlinchable[tick] !== flinchable) {
           tickFlinchable[tick] = 'mixed'
         }
 
-        // Track mage and range ticks for this fall tick
-        if (!Object.prototype.hasOwnProperty.call(mageTicks, tick)) {
-          mageTicks[tick] = result.mageTick
+        // Track mage/range ticks (only set once)
+        if (!(tick in mageTicks)) {
+          mageTicks[tick] = mageTick
         }
-        if (!Object.prototype.hasOwnProperty.call(rangeTicks, tick)) {
-          rangeTicks[tick] = result.rangeTick
+
+        if (!(tick in rangeTicks)) {
+          rangeTicks[tick] = rangeTick
         }
       })
 
+      const formatStatus = (value) =>
+        value === true ? 'Yes' : value === 'mixed' ? 'Mixed' : 'No'
+
+      const formatFix = (tick, width) =>
+        (TICK_FIXES[tick] ?? 'Unknown').padEnd(width)
+
       Object.entries(tickCounts)
-        .sort((a, b) => b[1] - a[1])
-        .forEach(([tick, count]) => {
-          const flinchableStatus = tickFlinchable[tick]
-          let statusText = 'No'
-          if (flinchableStatus === true) {
-            statusText = 'Yes'
-          } else if (flinchableStatus === 'mixed') {
-            statusText = 'Mixed'
-          }
-          const mageTick = mageTicks[tick]
-          const rangeTick = rangeTicks[tick]
-          console.log(`${tick.padStart(4)} | ${count.toLocaleString().padStart(7)} | ${statusText.padStart(10)} | ${mageTick.toString().padStart(9)} | ${TICK_FIXES[mageTick]?.padEnd(17) || 'Unknown'.padEnd(17)} | ${rangeTick.toString().padStart(10)} | ${TICK_FIXES[rangeTick]?.padEnd(11) || 'Unknown'.padEnd(11)}`)
-        })
+      .sort(([, a], [, b]) => b - a)
+      .forEach(([tick, count]) => {
+        const mageTick = mageTicks[tick]
+        const rangeTick = rangeTicks[tick]
+
+        console.log(
+          [
+            tick.padStart(4),
+            count.toLocaleString().padStart(7),
+            formatStatus(tickFlinchable[tick]).padStart(10),
+            mageTick.toString().padStart(9),
+            formatFix(mageTick, 17),
+            rangeTick.toString().padStart(10),
+            formatFix(rangeTick, 11),
+          ].join(' | ')
+        )
+      })
     }
 
   } catch (error) {

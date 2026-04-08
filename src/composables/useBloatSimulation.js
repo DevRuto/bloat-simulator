@@ -13,6 +13,7 @@ export class BloatSimulation {
     this.turnCooldown = 32
     this.canFall = false
     this.direction = 'right'
+    this.initialDirection = turnDirection
     this.turnDirection = turnDirection // 'clockwise' or 'counterclockwise'
     this.positionOffset = positionOffset
     this.initializeGrid()
@@ -312,30 +313,15 @@ export class BloatSimulation {
   // Check if bloat is flinchable based on position
   isFlinchable() {
     const { x, y } = this.bloatPosition
-    const gridSize = GRID_SIZE
-    const bloatSize = BLOAT_SIZE
+    const max = GRID_SIZE - BLOAT_SIZE // 11
 
-    // Check if bloat is in corner or 1 tile away from corner
-    // Corners are: (0,0), (gridSize-bloatSize,0), (0,gridSize-bloatSize), (gridSize-bloatSize,gridSize-bloatSize)
-    const corners = [
-      { x: 0, y: 0 },
-      { x: gridSize - bloatSize, y: 0 },
-      { x: 0, y: gridSize - bloatSize },
-      { x: gridSize - bloatSize, y: gridSize - bloatSize },
-    ]
+    const inCornerZone =
+      (x <= 1 && y <= 1) || // top-left
+      (x >= max - 1 && y <= 1) || // top-right
+      (x <= 1 && y >= max - 1) || // bottom-left
+      (x >= max - 1 && y >= max - 1) // bottom-right
 
-    // Check if bloat is in any corner or 1 tile away from any corner
-    for (const corner of corners) {
-      const xDiff = Math.abs(x - corner.x)
-      const yDiff = Math.abs(y - corner.y)
-
-      // If bloat is in corner (0,0) or 1 tile away (0,1) or (1,0) or (1,1)
-      if (xDiff <= 1 && yDiff <= 1) {
-        return false
-      }
-    }
-
-    return true
+    return !inCornerZone
   }
 
   // Process a single tick
@@ -367,6 +353,7 @@ export class BloatSimulation {
     // 1/16 chance to turn if off cooldown
     if (this.turnCooldown === 0 && Math.random() < 1 / 16) {
       this.turnCooldown = 32
+      this.turnDirection = this.turnDirection === 'clockwise' ? 'counterclockwise' : 'clockwise'
       this.turnClockwise()
       this.turnClockwise()
     }
@@ -402,6 +389,7 @@ export class BloatSimulation {
     this.isRunningState = false
     this.turnCooldown = 32
     this.canFall = false
+    this.turnDirection = this.initialDirection
     this.initializeGrid()
   }
 }

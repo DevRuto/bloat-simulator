@@ -304,6 +304,35 @@ export class BloatSimulation {
     }
   }
 
+  // Check if bloat is flinchable based on position
+  isFlinchable() {
+    const { x, y } = this.bloatPosition
+    const gridSize = GRID_SIZE
+    const bloatSize = BLOAT_SIZE
+
+    // Check if bloat is in corner or 1 tile away from corner
+    // Corners are: (0,0), (gridSize-bloatSize,0), (0,gridSize-bloatSize), (gridSize-bloatSize,gridSize-bloatSize)
+    const corners = [
+      { x: 0, y: 0 },
+      { x: gridSize - bloatSize, y: 0 },
+      { x: 0, y: gridSize - bloatSize },
+      { x: gridSize - bloatSize, y: gridSize - bloatSize }
+    ]
+
+    // Check if bloat is in any corner or 1 tile away from any corner
+    for (const corner of corners) {
+      const xDiff = Math.abs(x - corner.x)
+      const yDiff = Math.abs(y - corner.y)
+
+      // If bloat is in corner (0,0) or 1 tile away (0,1) or (1,0) or (1,1)
+      if (xDiff <= 1 && yDiff <= 1) {
+        return false
+      }
+    }
+
+    return true
+  }
+
   // Process a single tick
   processTick() {
     this.currentTick++
@@ -320,13 +349,13 @@ export class BloatSimulation {
       // Always fall on tick 47 if can fall or 1/4 chance and hasn't turned in last 5 ticks
       if (this.turnCooldown < 27 && (Math.random() < (1/4) || this.currentTick === 47)) {
         // Bloat falls - reset simulation
-        return { shouldReset: true }
+        return { shouldReset: true, flinchable: this.isFlinchable() }
       }
 
       // Fall if past tick 47 and hasn't turned in last 5 ticks
       if (this.turnCooldown < 27 && this.currentTick >= 47) {
         // Bloat falls - reset simulation
-        return { shouldReset: true }
+        return { shouldReset: true, flinchable: this.isFlinchable() }
       }
     }
 
@@ -354,7 +383,8 @@ export class BloatSimulation {
       isRunningState: this.isRunningState,
       turnCooldown: this.turnCooldown,
       canFall: this.canFall,
-      direction: this.direction
+      direction: this.direction,
+      flinchable: this.isFlinchable()
     }
   }
 

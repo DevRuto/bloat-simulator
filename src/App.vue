@@ -169,7 +169,8 @@ const updateTiles = () => {
     direction: simState.direction,
     turnDirection: turnDirection.value,
     positionOffset: positionOffset.value,
-    msPerTick: msPerTick.value
+    msPerTick: msPerTick.value,
+    flinchable: simState.flinchable
   }
 
   // Update BloatRoom component
@@ -285,6 +286,9 @@ onUnmounted(() => {
           </div>
           <div class="mb-1.5 text-sm leading-relaxed">
             <strong class="text-black">Can Fall:</strong> {{ debugInfo.canFall ? 'Yes (39-51t)' : 'No' }}
+          </div>
+          <div class="mb-1.5 text-sm leading-relaxed">
+            <strong class="text-black">Flinchable:</strong> {{ debugInfo.flinchable ? 'Yes' : 'No' }}
           </div>
         </div>
 

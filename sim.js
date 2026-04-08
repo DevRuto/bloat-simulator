@@ -8,7 +8,7 @@ const SIM_CONFIG = {
   turnDirection: 'clockwise',     // 'clockwise' or 'counterclockwise'
   positionOffset: -5,              // Position offset along perimeter
   maxTicks: 60,                 // Maximum number of ticks
-  simulationCount: 10             // Number of simulations to run
+  simulationCount: 100_000             // Number of simulations to run
 }
 
 /* Re-entry start positions */
@@ -162,30 +162,48 @@ async function main() {
     console.log(`Turn Direction: ${SIM_CONFIG.turnDirection}`)
     console.log(`Position Offset: ${SIM_CONFIG.positionOffset} (${offsetDesc})`)
 
-    console.log('')
-    console.log('Fall Tick | Flinchable | Mage Tick | Mage Fix          | Ranger Tick | Ranger Fix')
-    console.log('----------|------------|-----------|-------------------|-------------|----------------')
-    for (const result of results) {
-      if (result.totalTicks !== -1) {
-        const mageFix = TICK_FIXES[result.mageTick] || 'Unknown'
-        const rangeFix = TICK_FIXES[result.rangeTick] || 'Unknown'
-        console.log(`${result.totalTicks.toString().padStart(9)} | ${(result.flinchable ? 'Yes' : 'No').padStart(10)} | ${result.mageTick.toString().padStart(9)} | ${mageFix.padEnd(17)} | ${result.rangeTick.toString().padStart(11)} | ${rangeFix.padEnd(11)}`)
-      }
-    }
-
-    // if (uniqueFallTicks.length > 0) {
-    //   console.log('Tick counts when bloat fell:')
-    //   const tickCounts = {}
-    //   fallTicks.forEach(tick => {
-    //     tickCounts[tick] = (tickCounts[tick] || 0) + 1
-    //   })
-
-    //   Object.entries(tickCounts)
-    //     .sort((a, b) => b[1] - a[1])
-    //     .forEach(([tick, count]) => {
-    //       console.log(`  Tick ${tick}: ${count} times`)
-    //     })
+    // console.log('')
+    // console.log('Fall Tick | Flinchable | Mage Tick | Mage Fix          | Ranger Tick | Ranger Fix')
+    // console.log('----------|------------|-----------|-------------------|-------------|----------------')
+    // for (const result of results) {
+    //   if (result.totalTicks !== -1) {
+    //     const mageFix = TICK_FIXES[result.mageTick] || 'Unknown'
+    //     const rangeFix = TICK_FIXES[result.rangeTick] || 'Unknown'
+    //     console.log(`${result.totalTicks.toString().padStart(9)} | ${(result.flinchable ? 'Yes' : 'No').padStart(10)} | ${result.mageTick.toString().padStart(9)} | ${mageFix.padEnd(17)} | ${result.rangeTick.toString().padStart(11)} | ${rangeFix.padEnd(11)}`)
+    //   }
     // }
+
+    if (uniqueFallTicks.length > 0) {
+      console.log('Tick counts when bloat fell:')
+      const tickCounts = {}
+      const tickFlinchable = {}
+
+      fallTicks.forEach(result => {
+        const tick = result.totalTicks
+        tickCounts[tick] = (tickCounts[tick] || 0) + 1
+
+        // Track if any result for this tick was flinchable
+        if (!Object.prototype.hasOwnProperty.call(tickFlinchable, tick)) {
+          tickFlinchable[tick] = result.flinchable
+        } else if (tickFlinchable[tick] && !result.flinchable) {
+          // If we have both flinchable and non-flinchable for same tick, mark as mixed
+          tickFlinchable[tick] = 'mixed'
+        }
+      })
+
+      Object.entries(tickCounts)
+        .sort((a, b) => b[1] - a[1])
+        .forEach(([tick, count]) => {
+          const flinchableStatus = tickFlinchable[tick]
+          let statusText = ''
+          if (flinchableStatus === true) {
+            statusText = ' - flinchable'
+          } else if (flinchableStatus === 'mixed') {
+            statusText = ' - mixed'
+          }
+          console.log(`  Tick ${tick}: ${count} times${statusText}`)
+        })
+    }
 
   } catch (error) {
     console.error('Error:', error.message)

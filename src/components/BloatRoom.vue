@@ -1,6 +1,9 @@
 <template>
   <div class="flex flex-col items-center p-5 font-mono">
-    <div class="grid grid-cols-16 grid-rows-16 gap-0 border-4 border-black mb-5" style="grid-template-columns: repeat(16, 25px); grid-template-rows: repeat(16, 25px);">
+    <div
+      class="grid grid-cols-16 grid-rows-16 gap-0 border-4 border-black mb-5"
+      style="grid-template-columns: repeat(16, 25px); grid-template-rows: repeat(16, 25px)"
+    >
       <div
         v-for="(tile, index) in tilesData"
         :key="index"
@@ -8,10 +11,13 @@
         :class="{
           'bg-gray-800 text-white border-0': tile.isBloat,
           'bg-black border border-black': tile.isPillar,
-          'bg-gray-100 border border-black': tile.isFloor
+          'bg-gray-100 border border-black': tile.isFloor,
         }"
       >
-        <div v-if="tile.isBloat && isCenterTile(tile)" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white font-bold text-xs drop-shadow-lg">
+        <div
+          v-if="tile.isBloat && isCenterTile(tile)"
+          class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white font-bold text-xs drop-shadow-lg"
+        >
           <div class="text-xl font-bold text-white drop-shadow-lg">
             {{ getDirectionSymbol() }}
           </div>
@@ -47,16 +53,16 @@ import { ref, onMounted } from 'vue'
 const props = defineProps({
   direction: {
     type: String,
-    default: 'right'
+    default: 'right',
   },
   msPerTick: {
     type: Number,
-    default: 600
+    default: 600,
   },
   isRunning: {
     type: Boolean,
-    default: false
-  }
+    default: false,
+  },
 })
 
 const emit = defineEmits(['update:msPerTick'])
@@ -66,7 +72,7 @@ const tilesData = ref([])
 // Check if tile is the center of the 5x5 bloat area
 const isCenterTile = (tile) => {
   // Find all bloat tiles
-  const bloatTiles = tilesData.value.filter(t => t.isBloat)
+  const bloatTiles = tilesData.value.filter((t) => t.isBloat)
   if (bloatTiles.length === 0) return false
 
   // Get bloat position (top-left corner)
@@ -82,11 +88,16 @@ const isCenterTile = (tile) => {
 // Get arrow character for direction
 const getDirectionSymbol = () => {
   switch (props.direction) {
-    case 'right': return '>'
-    case 'down': return 'v'
-    case 'left': return '<'
-    case 'up': return '^'
-    default: return '>'
+    case 'right':
+      return '>'
+    case 'down':
+      return 'v'
+    case 'left':
+      return '<'
+    case 'up':
+      return '^'
+    default:
+      return '>'
   }
 }
 
@@ -103,7 +114,7 @@ const initializeEmptyGrid = () => {
         y,
         isBloat: false,
         isPillar: false,
-        isFloor: false
+        isFloor: false,
       }
 
       // Center pillar (6x6)
@@ -133,7 +144,7 @@ function updateTiles(newTiles) {
 
 // Expose method to parent
 defineExpose({
-  updateTiles
+  updateTiles,
 })
 
 onMounted(() => {

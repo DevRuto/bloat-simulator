@@ -195,11 +195,9 @@ async function main() {
         .sort((a, b) => b[1] - a[1])
         .forEach(([tick, count]) => {
           const flinchableStatus = tickFlinchable[tick]
-          let statusText = ''
+          let statusText = ' - not flinchable'
           if (flinchableStatus === true) {
             statusText = ' - flinchable'
-          } else if (flinchableStatus === 'mixed') {
-            statusText = ' - mixed'
           }
           console.log(`  Tick ${tick}: ${count} times${statusText}`)
         })
